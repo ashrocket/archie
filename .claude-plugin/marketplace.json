@@ -1,0 +1,14 @@
+{
+  "name": "archie",
+  "owner": {
+    "name": "ashrocket"
+  },
+  "plugins": [
+    {
+      "name": "archie",
+      "source": "./",
+      "version": "2.0.0",
+      "description": "Archie — architecture consultant with browser chat bridge and persistent knowledge"
+    }
+  ]
+}

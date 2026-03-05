@@ -1,8 +1,8 @@
 {
-  "name": "arch-chat",
-  "description": "Two-layer plugin: generic file-based chat bridge between browser and Claude, plus 'archie' — an architecture consultation skill that accumulates project knowledge.",
+  "name": "archie",
+  "version": "2.0.0",
+  "description": "Archie — your architecture consultant. He lives in your browser, reads your codebase, and remembers what he learns.",
   "author": {
     "name": "ashrocket"
-  },
-  "category": "development"
+  }
 }

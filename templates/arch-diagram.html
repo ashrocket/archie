@@ -4,24 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Architecture — Archie</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, sans-serif; background: #fff; color: #1a1d27; padding: 48px; }
-  h1 { font-size: 24px; margin-bottom: 8px; }
-  .subtitle { color: #6b7280; margin-bottom: 32px; }
-  .placeholder { background: #f8f9fb; border: 2px dashed #d8dce6; border-radius: 12px;
-    padding: 48px; text-align: center; color: #6b7280; min-height: 400px;
+  body { font-family: 'Libre Baskerville', Georgia, serif; background: #FFF8F0; color: #3D2B1F; padding: 48px; }
+  h1 { font-size: 24px; margin-bottom: 8px; color: #3D2B1F; }
+  .subtitle { color: #8B7355; margin-bottom: 32px; font-style: italic; }
+  .placeholder { background: #FDF6EC; border: 2px dashed #E8D5B8; border-radius: 12px;
+    padding: 48px; text-align: center; color: #8B7355; min-height: 400px;
     display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
-  .placeholder code { background: #e8ecf2; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
+  .placeholder code { background: #F5E6C8; padding: 4px 8px; border-radius: 4px; font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace; color: #C17F3A; }
+  .accent-bar { width: 60px; height: 3px; margin: 0 auto 24px;
+    background: linear-gradient(90deg, #5BCEFA, #F5A9B8, #FFF, #F5A9B8, #5BCEFA); border-radius: 2px; }
 </style>
 </head>
 <body>
   <h1>Project Architecture</h1>
+  <div class="accent-bar"></div>
   <p class="subtitle">Replace this template with your architecture diagrams, data flows, or system overview.</p>
 
   <div class="placeholder">
     <p>Your architecture content goes here.</p>
-    <p>Click the chat bubble (bottom-right) to discuss with Archie.</p>
+    <p>Click the chat bubble (bottom-right) to talk to Archie.</p>
     <p><code>/archie start</code> in your terminal to activate the bridge.</p>
   </div>
 

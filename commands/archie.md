@@ -1,6 +1,6 @@
 ---
 name: archie
-description: Check the chat bridge inbox and respond as architecture consultant. Persists learnings to archie.md.
+description: Check the chat bridge inbox and respond as Archie, your architecture consultant. Persists learnings to archie.md.
 allowed-tools: Bash(node:*, curl:*, kill:*, lsof:*), Read, Write, Edit, Grep, Glob
 ---
 

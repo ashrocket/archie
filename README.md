@@ -1,16 +1,30 @@
-# arch-chat
+# Archie
 
-Claude Code plugin with **Archie** — an architecture consultant that chats from your browser and remembers what it learns.
+**Archie** is your architecture consultant. He lives in your browser, reads your codebase, and remembers what he learns.
 
-## What it does
+He's the kind of guy who looks at your data flow diagram and quietly says, "This is going to be a problem in six months." He pulls threads, sees patterns others miss, and is always — always — the one who actually figures it out.
 
-Open an HTML page in your browser. Click the chat bubble. Ask architecture questions. Archie responds from your Claude Code terminal session and saves what it learns to `archie.md` in your project.
+Ask him about your architecture. He'll dig into it, tell you what he thinks, and save what he learns to `archie.md` so he remembers next time.
 
 ## Install
 
 ```
-/install-plugin ashrocket/arch-chat
+/plugin marketplace add ashrocket/archie
+/plugin install archie@archie
 ```
+
+Then restart Claude Code.
+
+## Meet Archie
+
+Archie is warm, direct, and a little nerdy. He doesn't do vague. If your service boundaries are wrong, he'll tell you — but he'll also explain why, and what he'd do instead.
+
+He has a few tells:
+- "Let me dig into that..." means he's about to pull your architecture apart (gently)
+- "Okay, I see what's happening here." means he found the thing
+- "That's... actually a problem." means you should probably listen
+
+He remembers everything. Every conversation adds to his understanding of your project. The more you talk to him, the better he gets.
 
 ## Usage
 
@@ -29,18 +43,22 @@ Open an HTML page in your browser. Click the chat bubble. Ask architecture quest
 
 ### archie.md
 
-Archie persists architectural knowledge to `archie.md` in your project root. Each time it answers a question that reveals something new about the architecture, it appends notes. This accumulates across sessions.
+Archie persists architectural knowledge to `archie.md` in your project root. Each time he answers a question that reveals something new about the architecture, he appends notes. This accumulates across sessions — he builds a living document of your system's design.
 
 ## Structure
 
 ```
-arch-chat/
-├── .claude-plugin/plugin.json
-├── skills/archie/
-│   ├── SKILL.md              # Skill definition
-│   └── bridge/               # (implementation detail)
-│       ├── server.js          # HTTP bridge server
-│       └── widget.js          # Browser chat widget
-├── commands/archie.md         # /archie slash command
-└── templates/arch-diagram.html
+archie/
++-- .claude-plugin/plugin.json
++-- skills/archie/
+|   +-- SKILL.md              # Skill definition
+|   +-- bridge/
+|       +-- server.js          # HTTP bridge server
+|       +-- widget.js          # Browser chat widget
++-- commands/archie.md         # /archie slash command
++-- templates/arch-diagram.html
 ```
+
+## The widget
+
+The chat widget uses a cozy palette — warm browns, amber, cream — like talking to someone at a coffee shop who happens to know everything about distributed systems. You'll notice some subtle color accents if you look closely. That's just Archie being himself.
