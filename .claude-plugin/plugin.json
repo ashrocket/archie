@@ -1,0 +1,8 @@
+{
+  "name": "arch-chat",
+  "description": "Two-layer plugin: generic file-based chat bridge between browser and Claude, plus 'archie' — an architecture consultation skill that accumulates project knowledge.",
+  "author": {
+    "name": "ashrocket"
+  },
+  "category": "development"
+}
