@@ -1,20 +1,61 @@
 ---
 name: archie
 description: Check the chat bridge inbox and respond as Archie, your architecture consultant. Persists learnings to archie.md.
-allowed-tools: Bash(node:*, curl:*, kill:*, lsof:*), Read, Write, Edit, Grep, Glob
+allowed-tools: Bash(node:*, curl:*, kill:*, lsof:*, open:*), Read, Write, Edit, Grep, Glob
 ---
 
 # /archie — Architecture Chat
 
 ## Usage
 - `/archie` — Check inbox for new messages, respond
-- `/archie start` — Start the bridge server and open browser
+- `/archie start` — Start the bridge server
 - `/archie stop` — Stop the bridge server
+- `/archie chat <file.html>` — Inject widget into the HTML file, start bridge, open in browser
+- `/archie chat <topic>` — Research topic locally, generate archie.md with findings, start bridge
 
 ## Steps
 
 ### Parse arguments
-Check if the user passed "start" or "stop" as an argument.
+Check if the user passed "start", "stop", or "chat" as the first argument.
+
+### If "chat":
+The second argument is either a file path or a topic string.
+
+**Detect which:**
+- If the argument ends in `.html` or `.htm` and the file exists → it's a file
+- Otherwise → it's a topic
+
+**If file:**
+1. Read the HTML file
+2. Check if it already has the widget script. If not, inject before `</body>`:
+   ```html
+   <script src="${CLAUDE_PLUGIN_ROOT}/skills/archie/bridge/widget.js" data-title="Archie"></script>
+   ```
+3. Write the modified file back
+4. Start the bridge (same as "start" steps below)
+5. Open the file in the browser: `open <file-path>`
+6. Tell the user: "Widget injected and bridge running. Chat bubble is in the bottom-right."
+
+**If topic:**
+1. Search the local codebase for the topic using Grep and Glob:
+   - Search file names matching the topic
+   - Search file contents for the topic keyword
+   - Read CLAUDE.md and any existing archie.md for context
+2. Synthesize findings into an `archie.md` at the project root using the archie skill format:
+   ```markdown
+   # Project Architecture — Archie's Notes
+
+   ## Topic: <topic>
+   - [findings from codebase search]
+
+   ## Components
+   - [relevant files and their roles]
+
+   ## Data Flow
+   - [any flows related to the topic]
+   ```
+3. Start the bridge (same as "start" steps below)
+4. Tell the user: "I've researched '<topic>' and written initial findings to archie.md. Bridge is running — open any HTML page with the widget to chat about it."
 
 ### If "start":
 1. Check if bridge is already running: `curl -s http://localhost:${CHAT_BRIDGE_PORT:-3077}/health`
