@@ -12,7 +12,10 @@ program
 program
   .command('init')
   .description('Set up Archie (auto-runs on first use)')
-  .action(() => console.log('TODO: init'));
+  .action(async () => {
+    const { init } = require('../lib/init');
+    await init();
+  });
 
 program
   .command('chat [target]')
