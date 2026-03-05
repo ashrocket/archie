@@ -1,0 +1,27 @@
+{
+  "name": "@ashrocket/archie",
+  "version": "1.0.0",
+  "description": "Archie — your architecture consultant. Chat with him through your browser.",
+  "license": "MIT",
+  "author": "ashrocket",
+  "bin": {
+    "archie": "./bin/archie.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "widget/"
+  ],
+  "dependencies": {
+    "commander": "^12.0.0",
+    "open": "^10.0.0",
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ashrocket/archie.git"
+  }
+}
