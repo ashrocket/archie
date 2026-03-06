@@ -29,14 +29,14 @@
     .cb-toggle svg{width:24px;height:24px;fill:#FFF8F0}
     .cb-panel{position:fixed;${POSITION === 'bottom-left' ? 'left' : 'right'}:24px;bottom:88px;
       width:360px;max-height:480px;background:#FFF8F0;border:1px solid #E8D5B8;border-radius:12px;
-      border-top:3px solid #F5A9B8;
+      border-top:3px solid #C17F3A;
       box-shadow:0 8px 32px rgba(61,43,31,.15);z-index:10000;display:none;flex-direction:column;
       font-family:'Libre Baskerville',Georgia,serif;font-size:14px;color:#3D2B1F}
     .cb-panel.open{display:flex}
     .cb-header{padding:12px 16px;border-bottom:1px solid #E8D5B8;display:flex;align-items:center;gap:8px;
       background:#FDF6EC}
     .cb-dot{width:8px;height:8px;border-radius:50%;background:#d4d4d4}
-    .cb-dot.online{background:#5BCEFA}
+    .cb-dot.online{background:#7AB648}
     .cb-title{font-size:13px;font-weight:700;color:#3D2B1F}
     .cb-status{font-size:11px;color:#8B7355;margin-left:auto;font-style:italic}
     .cb-msgs{flex:1;overflow-y:auto;padding:12px 16px;min-height:200px;max-height:340px;
