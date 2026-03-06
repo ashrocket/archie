@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archie — Design Exploration</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Libre Baskerville', Georgia, serif; background: #FFF8F0; color: #3D2B1F; line-height: 1.7; }
+
+  /* Header */
+  .hero { padding: 64px 48px 48px; max-width: 960px; margin: 0 auto; }
+  .hero h1 { font-size: 32px; margin-bottom: 4px; }
+  .hero .subtitle { color: #8B7355; font-style: italic; font-size: 15px; margin-bottom: 8px; }
+  .accent-bar { width: 80px; height: 3px; background: linear-gradient(90deg, #C17F3A, #E8D5B8, #C17F3A); border-radius: 2px; margin-bottom: 32px; }
+
+  /* Navigation */
+  .toc { padding: 0 48px 32px; max-width: 960px; margin: 0 auto; }
+  .toc h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: #8B7355; margin-bottom: 12px; }
+  .toc ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .toc a { display: inline-block; padding: 6px 14px; background: #FDF6EC; border: 1px solid #E8D5B8; border-radius: 6px;
+    font-size: 13px; color: #C17F3A; text-decoration: none; transition: all .15s; font-family: inherit; }
+  .toc a:hover { background: #C17F3A; color: #FFF8F0; }
+
+  /* Sections */
+  .section { padding: 48px; max-width: 960px; margin: 0 auto; border-top: 1px solid #E8D5B8; }
+  .section h2 { font-size: 22px; margin-bottom: 6px; color: #3D2B1F; }
+  .section h3 { font-size: 16px; margin: 24px 0 8px; color: #C17F3A; }
+  .section .tag { display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    padding: 3px 10px; border-radius: 4px; margin-bottom: 16px; font-family: 'Fira Code', monospace; }
+  .tag.chosen { background: #C17F3A; color: #FFF8F0; }
+  .tag.pitch { background: #F5E6C8; color: #8B7355; }
+  .tag.wildcard { background: #3D2B1F; color: #FFF8F0; }
+  .tag.branding { background: #5B8C5A; color: #FFF8F0; }
+
+  p { margin-bottom: 14px; font-size: 14px; }
+  blockquote { border-left: 3px solid #C17F3A; padding: 12px 20px; margin: 16px 0; background: #FDF6EC;
+    font-style: italic; color: #5C4433; border-radius: 0 8px 8px 0; font-size: 13px; }
+  ul, ol { margin: 8px 0 16px 24px; font-size: 14px; }
+  li { margin-bottom: 6px; }
+  code { font-family: 'Fira Code', monospace; font-size: 12px; background: #F5E6C8; padding: 2px 6px; border-radius: 3px; color: #C17F3A; }
+  strong { color: #3D2B1F; }
+  em { color: #5C4433; }
+
+  /* Steal table */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: #C17F3A; color: #FFF8F0; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 1px; }
+  td { padding: 10px 12px; border-bottom: 1px solid #E8D5B8; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 700; color: #C17F3A; white-space: nowrap; width: 160px; }
+
+  /* Comparison grid */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .card { background: #FDF6EC; border: 1px solid #E8D5B8; border-radius: 10px; padding: 20px; }
+  .card h4 { font-size: 14px; margin-bottom: 8px; color: #C17F3A; }
+  .card p { font-size: 13px; margin-bottom: 8px; }
+  .card .verdict { font-size: 12px; font-style: italic; color: #8B7355; }
+
+  /* Range map */
+  .range-map { background: #3D2B1F; color: #E8D5B8; border-radius: 10px; padding: 24px; margin: 16px 0;
+    font-family: 'Fira Code', monospace; font-size: 12px; line-height: 1.8; white-space: pre; overflow-x: auto; }
+
+  /* Winner banner */
+  .winner { background: linear-gradient(135deg, #FDF6EC, #F5E6C8); border: 2px solid #C17F3A;
+    border-radius: 12px; padding: 32px; margin: 24px 0; text-align: center; }
+  .winner h3 { font-size: 20px; color: #C17F3A; margin-bottom: 8px; }
+  .winner p { font-size: 14px; max-width: 600px; margin: 0 auto; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .hero, .section, .toc { padding-left: 24px; padding-right: 24px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* Keep space for chat widget */
+  body { padding-bottom: 120px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Archie — Design Exploration</h1>
+  <div class="accent-bar"></div>
+  <p class="subtitle">Eight visual directions explored. One chosen. A picture book that plays like an RPG.</p>
+</div>
+
+<div class="toc">
+  <h2>Contents</h2>
+  <ul>
+    <li><a href="#direction">Chosen Direction</a></li>
+    <li><a href="#character">Character Design</a></li>
+    <li><a href="#illustrated">Illustrated / Hand-Drawn</a></li>
+    <li><a href="#pixel">Pixel Art</a></li>
+    <li><a href="#vector">Flat Vector</a></li>
+    <li><a href="#collage">Photographic Collage</a></li>
+    <li><a href="#ink">Wildcard: Ink Simulation</a></li>
+    <li><a href="#chibi">Chibi Flash</a></li>
+    <li><a href="#xkcd">XKCD / Stick Figure</a></li>
+    <li><a href="#rpg">Retro Nintendo RPG</a></li>
+    <li><a href="#range">Range Map</a></li>
+    <li><a href="#steal">What to Steal</a></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="direction">
+  <h2>The Chosen Direction</h2>
+  <span class="tag chosen">CHOSEN</span>
+
+  <div class="winner">
+    <h3>Illustrated Storybook RPG</h3>
+    <p>A picture book that plays like an RPG. Hand-drawn <em>_why</em>-style illustrations on living pages with EarthBound dialogue boxes, item-get response delivery, and parallax pastoral scenes.</p>
+  </div>
+
+  <h3>Core Concept</h3>
+  <p>The page IS the overworld. Archie is a hand-drawn character who lives in a book that behaves like a game. The user is reading a living page — ink illustrations, warm color washes, handwritten marginalia — but the illustrations move, the character walks, you can talk to him, and he gives you things.</p>
+
+  <h3>DNA Sources</h3>
+  <ul>
+    <li><strong>_why the lucky stiff:</strong> Chunky hand-drawn characters interrupting content. Humor in the margins. Art that's rough on purpose. The feeling that someone made this for you at 2 AM.</li>
+    <li><strong>Harry Potter:</strong> The page is alive. Ink moves. Portraits talk back. Maps reveal themselves. The medium itself is magical.</li>
+    <li><strong>EarthBound / RPG:</strong> Dialogue boxes with text crawl. Item-get moments. A safe place to be confused. An NPC who notices you're there.</li>
+  </ul>
+
+  <h3>What This Is NOT</h3>
+  <ul>
+    <li>Not a game — no goals, no progression, no fail states</li>
+    <li>Not pixel art — hand-drawn ink and color wash</li>
+    <li>Not polished/corporate — deliberately rough, handmade, personal</li>
+    <li>Not ironic retro — earnestly recreating warmth</li>
+    <li>Not decoration — the visual experience IS the product</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="character">
+  <h2>Character Design: Archie</h2>
+  <span class="tag chosen">CHOSEN</span>
+
+  <p>Archie used to go by Velmo — but that was a while ago. He's Archie now, and Archie fits better. He's investigative, warm, a little nerdy. More cerebral than physical. Masculine but carries a bit of softness — not in a way he hides, just in a way that's his.</p>
+
+  <h3>Visual Description</h3>
+  <ul>
+    <li>Hand-drawn, chunky ink lines, rough-edged, charming because it's imperfect</li>
+    <li>2-3 head proportion (storybook character, not chibi, not realistic)</li>
+    <li>Slightly oversized round glasses — the Velmo DNA: cerebral, searching, owlish</li>
+    <li>A coat he lives in — oversized, rumpled, professorial but not polished</li>
+    <li>Warm autumn palette: burnt orange, deep teal, warm brown, cream</li>
+    <li>Broad shoulders but gentle posture</li>
+  </ul>
+
+  <h3>Idle Animations</h3>
+  <ul>
+    <li>Walking through scenes, pausing to examine things</li>
+    <li>Adjusting glasses (thinking gesture)</li>
+    <li>Scribbling in a notebook</li>
+    <li>A bird landing on his head unnoticed</li>
+    <li>Glancing at the user every few seconds</li>
+  </ul>
+
+  <h3>Humor Style</h3>
+  <p>Warm, observational, never punching down. Self-aware ("I just spent ten minutes tracing a dependency cycle that was my own suggestion"). Delightful surprise (a paper airplane arrives with a haiku instead of a paragraph).</p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="illustrated">
+  <h2>Pitch 1: Illustrated / Hand-Drawn</h2>
+  <span class="tag pitch">ART DIRECTION PITCH</span>
+
+  <blockquote>"Only hand-drawn says: here is a thinking person in a quiet place, and you are welcome to sit with him while the work gets done."</blockquote>
+
+  <p>Watercolor and ink-wash as the visual language of thought itself. Imprecise, layered, bleeding one idea into the next. Da Vinci's notebooks, Beatrix Potter's lakeside sketches, Miyazaki's image boards.</p>
+
+  <h3>How It Works</h3>
+  <p>Watercolor backgrounds organized in atmospheric depth layers — diluted indigo treeline, wet-on-wet meadow greens, ink-wash grass blades. Each layer is a PNG with transparency for CSS parallax. Character sprites as ink-wash sprite sheets where the irregular line gives life to even two-frame walk cycles.</p>
+
+  <h3>Pipeline</h3>
+  <p>Procreate / Clip Studio Paint → layers exported as WebP (80-85 quality) → sprite sheets via TexturePacker with JSON frame maps → scene manifests (JSON) defining layer order, parallax depth, animation triggers.</p>
+
+  <h3>Honest Downsides</h3>
+  <ul>
+    <li>Requires a skilled illustrator — specialized hire</li>
+    <li>500KB-1MB per scene (watercolor textures compress poorly)</li>
+    <li>Iteration is slow — "add a river" means repainting</li>
+    <li>Each new scene/variant requires new painted assets</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="pixel">
+  <h2>Pitch 2: Pixel Art</h2>
+  <span class="tag pitch">ART DIRECTION PITCH</span>
+
+  <blockquote>"Every single pixel is a deliberate decision. There's no hiding behind gradients or blur."</blockquote>
+
+  <p>48px Archie sprite with thinking-pose idle, 6 frames, looping. Slight awkwardness built into the medium. Pixel characters walk a little stiffly, and that warmth comes from visible construction.</p>
+
+  <h3>The Experience</h3>
+  <p>Dithered sky with shifting clouds. 2-3 layers of pixel landscapes scrolling at different rates. Archie at 48x64px, upscaled with <code>image-rendering: pixelated</code>. Fireflies as 2x2px sine-wave sprites. When the scene goes immersive, Archie sits on a log, pulls out a notebook.</p>
+
+  <h3>Pipeline</h3>
+  <p>Aseprite ($20) → PNG sprite sheets with JSON metadata → Tiled for parallax backgrounds → enforced 32-color palette (Endesga-32). Full scene: sub-megabyte.</p>
+
+  <h3>Strongest Argument</h3>
+  <p>Most technically feasible. Scales by integer multiples with zero quality loss. Runs at 60fps on a 2018 phone. A full Archie animation set fits in a single 512x512 PNG.</p>
+
+  <h3>Honest Downsides</h3>
+  <ul>
+    <li>"Pixel art" can read as unserious to enterprise buyers</li>
+    <li>Requires Celeste-quality execution to avoid RPG Maker defaults</li>
+    <li>Facial expression range is very limited at low resolution</li>
+    <li>Good pixel artists are specialized and hard to find</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="vector">
+  <h2>Pitch 3: Flat Vector / Geometric</h2>
+  <span class="tag pitch">ART DIRECTION PITCH</span>
+
+  <blockquote>"Archie doesn't see organic mess. He sees tessellated canopies, triangulated trunks, hexagonal leaf clusters."</blockquote>
+
+  <p>Monument Valley meets the mind palace. Clean isometric planes. The slight awkwardness of geometric forms trying to represent organic things. A geometric deer is inherently a little awkward. A geometric tree is inherently a little cerebral.</p>
+
+  <h3>The Experience</h3>
+  <p>Archie's body as a scene graph of rotating polygons — trapezoid torso, circular joints, triangular feet. No sprite sheets needed. Procedural animation: walk adapts to terrain, head tracks elements, scarf responds to wind. The idle immersive state: Archie on an impossible Escher staircase, thinking.</p>
+
+  <h3>Pipeline</h3>
+  <p>Figma → SVG export → SVGO optimization → Lottie/Bodymovin for complex animations → Canvas Path2D for character. The entire pipeline stays vector from creation to render. A full forest scene: 15-30KB as SVG.</p>
+
+  <h3>Honest Downsides</h3>
+  <ul>
+    <li>Flat vector is everywhere — every SaaS landing page</li>
+    <li>Emotional expression ceiling is low (circle face, dot eyes)</li>
+    <li>Without strong art direction, accidentally looks like Notion clip art</li>
+    <li>Procedural character animation front-loads engineering effort</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="collage">
+  <h2>Pitch 4: Photographic / Collage</h2>
+  <span class="tag pitch">ART DIRECTION PITCH</span>
+
+  <blockquote>"Archie doesn't live in a UI. He lives in a world of physical artifacts — torn kraft paper, woodgrain, pressed leaves."</blockquote>
+
+  <p>Real-world textures layered with hand-drawn illustrated overlays. The result feels <em>made</em>. Not rendered. Not generated. Assembled by someone who cares. A response arrives on a torn scrap of paper that drifts into frame.</p>
+
+  <h3>Pipeline</h3>
+  <p>Flatbed scanner at 600 DPI + stock textures → Photoshop masking → WebP parallax layers → Procreate/Illustrator for overlays → SVG where possible. Typical scene: under 3MB total.</p>
+
+  <h3>Strongest Argument</h3>
+  <p>Triggers tactile nostalgia. Users feel like they've opened someone's private journal. The slight imperfection of torn edges, organic grain variation, and natural color palettes create psychological safety. You linger. You don't rush.</p>
+
+  <h3>Honest Downsides</h3>
+  <ul>
+    <li>Heaviest asset production — every texture must be sourced, scanned, masked</li>
+    <li>Heaviest file weight of all approaches</li>
+    <li>Color consistency across devices is harder with photographs</li>
+    <li>Adding a new environment means new photography, new scans</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="ink">
+  <h2>Wildcard: Living Ink Simulation</h2>
+  <span class="tag wildcard">WILDCARD</span>
+
+  <blockquote>"Ink in water IS thinking made visible. It curls. It bifurcates. It forms tendrils that reach out, hesitate, split apart, find each other again."</blockquote>
+
+  <p>A real-time Navier-Stokes fluid solver via WebGPU compute shaders. Everything — Archie, the landscape, the text — is ink dissolving in water. Not a metaphor. An actual physics simulation where pigment particles are the sole rendering primitive.</p>
+
+  <h3>How Responses Arrive</h3>
+  <p>When Claude processes, a gentle current pulls all dye toward center — the world <em>contracts</em> like narrowing attention. The response arrives as a pressure shockwave. Text writes itself in ink, holds shape briefly (high viscosity zone), then dissolves. The chat sidebar holds permanent text; the fluid holds the <em>memory</em> as residual dye.</p>
+
+  <h3>Paper airplane:</h3>
+  <p>A tight V-shaped emitter cluster with a velocity jet, trailing dissolving text in its wake. Hits the chat boundary with an ink splash.</p>
+
+  <h3>Why It's Wild</h3>
+  <p>No one has shipped a production chat interface rendered through fluid simulation. Every session genuinely looks different (chaotic system). Archie's form is perpetually dissolving and being redrawn — a man made of thought, holding shape against entropy.</p>
+
+  <h3>Honest Downsides</h3>
+  <ul>
+    <li>Narrow margin between "stunning" and "spilled coffee on my screen"</li>
+    <li>Mobile WebGPU support is incomplete</li>
+    <li>Screen readers can't parse fluid simulation</li>
+    <li>Might feel like an art installation when you just want to ask a question</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="chibi">
+  <h2>Branding: Chibi Flash</h2>
+  <span class="tag branding">BRANDING EXPLORATION</span>
+
+  <blockquote>"Something someone made for you at 2 AM. Not something a design team A/B tested."</blockquote>
+
+  <p>3:5 head-to-body ratio. Enormous asymmetric eyes with thick ink outlines. Rumpled blazer over too-big turtleneck, flat olive and warm cream fills, zero texture. Tiny stilt legs in comically oversized brown oxfords. Carries a rolled-up blueprint he never opens.</p>
+
+  <h3>The Movement</h3>
+  <p>Parappa flat-paper planes sliding past each other. 4-6 frame animation with that Newgrounds <em>snap</em> — movement is punctuated, not smooth. He bobs between key poses like a paper puppet on a stick. Two-frame leg-swing loop on a fence that is somehow the most endearing thing you've ever seen.</p>
+
+  <h3>Touchstones</h3>
+  <p>Homestar Runner, Katamari Damacy cutscenes, Parappa the Rapper, Studio 4°C shorts, Newgrounds golden age.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="xkcd">
+  <h2>Branding: XKCD / Stick Figure</h2>
+  <span class="tag branding">BRANDING EXPLORATION</span>
+
+  <blockquote>"The smartest thing in the room doesn't need to perform sophistication."</blockquote>
+
+  <p>Black lines on white. Round head, single tuft of messy hair, round glasses slightly too big and slightly crooked. No fill. No shading. Napkin sketch energy. The emotional bandwidth of a Pixar character from two wobbly circles and a line.</p>
+
+  <h3>Key Insight</h3>
+  <p>There's a major overlap between Velmo (Archie's former identity) and the XKCD archetype: cerebral, investigative, glasses, slightly awkward, the one who actually solves it. The <em>personality</em> DNA is almost identical. But Archie's soul is Velmo/XKCD — his visual world needs to be richer.</p>
+
+  <p><strong>Verdict:</strong> Right character. Wrong costume. Eliminated as visual direction.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="rpg">
+  <h2>Branding: Retro Nintendo RPG</h2>
+  <span class="tag branding">BRANDING EXPLORATION</span>
+
+  <blockquote>"They made you feel safe enough to be confused."</blockquote>
+
+  <p>32x48px sprite — taller than standard NPCs because he matters. Chrono Trigger proportions: big head, round glasses, oversized coat reading as "professor who forgot his umbrella." Muted autumn palette. Idle animation: shifts weight, adjusts glasses, glances at <em>you</em> every 8 seconds.</p>
+
+  <h3>Dialogue Box</h3>
+  <p>EarthBound-style rounded window. Text crawls character by character with tick-tick-tick. Archie's portrait shifts to "thinking" variant while processing. Bitmap font, not system font. Code blocks render like spell names in Final Fantasy VI.</p>
+
+  <h3>Responses as Items</h3>
+  <p><em>"You received: Archie's Analysis"</em> — code review is a scroll, refactor is a crystal, bug fix is a potion, architecture recommendation is a map fragment. Inventory panel becomes conversation history.</p>
+
+  <h3>The Emotional Register</h3>
+  <p>Not ironic distance. Radical sincerity. This interaction matters. You matter. The problem you're working on is a quest, and quests are worth taking seriously, and you don't have to do them alone.</p>
+
+  <table>
+    <tr><th>Game</th><th>What to Steal</th></tr>
+    <tr><td>EarthBound</td><td>Dialogue box style. Rounded windows. Text-print sound. Serious things said simply.</td></tr>
+    <tr><td>Chrono Trigger</td><td>Character portraits that shift with mood. Those specific SNES blues and greens.</td></tr>
+    <tr><td>Secret of Mana</td><td>The forest. Dappled light. The ring menu for tool selection.</td></tr>
+    <tr><td>Link's Awakening</td><td>The contained world. Item-get animation — pause, jingle, recognition.</td></tr>
+    <tr><td>Paper Mario</td><td>Layered paper aesthetic. Panels that fold and unfold. Flatness with depth.</td></tr>
+    <tr><td>FF VI</td><td>Menu typography. Items named with weight and specificity.</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="range">
+  <h2>Range Map</h2>
+
+  <div class="range-map">Polished ←————————————————→ Rough/Handmade
+  Vector    Pixel    Collage    Watercolor    Chibi    XKCD    _why
+
+Serious ←————————————————→ Playful
+  Ink Sim    Collage    Illustrated    RPG    Chibi Flash
+
+Cool ←————————————————→ Warm
+  Ink Sim    Vector    Pixel    Collage    RPG    Illustrated
+
+            Archie lives here: ──→  warm + handmade + earnest-not-ironic
+                                    humor that never punches down
+                                    a picture book that plays like an RPG</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<div class="section" id="steal">
+  <h2>The Synthesis: What We're Building</h2>
+  <span class="tag chosen">CHOSEN</span>
+
+  <div class="grid">
+    <div class="card">
+      <h4>From _why</h4>
+      <p>Chunky hand-drawn characters. Humor in the margins. Rough on purpose. Made for you at 2 AM.</p>
+    </div>
+    <div class="card">
+      <h4>From Harry Potter</h4>
+      <p>The page is alive. Ink moves. Portraits talk back. The medium is magical.</p>
+    </div>
+    <div class="card">
+      <h4>From EarthBound</h4>
+      <p>Dialogue boxes with text crawl. Safe place to be confused. An NPC who notices you.</p>
+    </div>
+    <div class="card">
+      <h4>From the Illustrated Pitch</h4>
+      <p>CSS parallax with hand-drawn layers. Canvas for character and interactive moments.</p>
+    </div>
+    <div class="card">
+      <h4>From the RPG Pitch</h4>
+      <p>Responses as objects you receive. History as inventory. A world that cares about you.</p>
+    </div>
+    <div class="card">
+      <h4>The Emotional Register</h4>
+      <p>Warm. Earnest. Never ironic. Great sense of humor but never at anyone's expense. Radical sincerity.</p>
+    </div>
+  </div>
+
+  <blockquote>The pastoral scene is not a background. It is a world. Archie is not an avatar. He is a character. The dialogue box is not a UI element. It is a conversation between two people in a clearing in the woods, and one of them has been waiting for you.</blockquote>
+</div>
+
+<!-- Archie chat widget -->
+<script src="../skills/archie/bridge/widget.js" data-title="Archie"></script>
+</body>
+</html>
