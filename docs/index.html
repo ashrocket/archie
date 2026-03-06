@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archie — A Picture Book That Plays Like an RPG</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Newsreader:ital,opsz,wght@0,6..72,300..800;1,6..72,300..800&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ──── Palette ──── */
+:root {
+  --ink: #2A1F14;
+  --cream: #FFF8F0;
+  --parchment: #F5E6C8;
+  --warm-brown: #3D2B1F;
+  --amber: #C17F3A;
+  --amber-light: #E8D5B8;
+  --teal: #2D6A6A;
+  --sage: #7B9E6B;
+  --sage-dark: #5B7E4B;
+  --sage-light: #9BB08B;
+  --gold: #D4A54A;
+  --gold-light: #E8C88A;
+  --skin: #F2D5A8;
+}
+
+/* ──── Reset ──── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Newsreader', Georgia, serif;
+  background: var(--cream);
+  color: var(--warm-brown);
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+/* ──── Subtle parchment texture ──── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 25% 20%, rgba(193,127,58,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 60%, rgba(139,115,85,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(61,43,31,0.02) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ════════════════════════════════════
+   SECTION 1: FOREST SCENE (HERO)
+   ════════════════════════════════════ */
+.scene {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+}
+
+/* Sky */
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    #C49A50 0%, #D4A854 10%, #E0BE78 25%,
+    #E8D098 45%, #E0D0B0 65%, #D0D4C0 85%, #C0CDB8 100%
+  );
+}
+
+/* Clouds */
+.cloud {
+  position: absolute;
+  background: rgba(255,248,240,0.25);
+  border-radius: 50%;
+  filter: blur(8px);
+}
+.cloud--1 { width: 200px; height: 60px; top: 8%; left: 15%; }
+.cloud--2 { width: 160px; height: 45px; top: 12%; right: 20%; }
+.cloud--3 { width: 120px; height: 35px; top: 18%; left: 55%; }
+
+/* Hills */
+.hill {
+  position: absolute;
+  border-radius: 50%;
+}
+.hill--1 { width: 140%; height: 280px; bottom: 44%; left: -20%; background: #C8D0B8; opacity: 0.35; }
+.hill--2 { width: 110%; height: 220px; bottom: 40%; left: -5%; background: #B8C4A8; opacity: 0.45; }
+.hill--3 { width: 130%; height: 260px; bottom: 36%; left: -15%; background: #A8B898; opacity: 0.45; }
+
+/* Treelines — clip-path silhouettes */
+.treeline {
+  position: absolute;
+  width: 100%;
+  left: 0;
+}
+.treeline--far {
+  bottom: 42%;
+  height: 20%;
+  background: var(--sage-light);
+  opacity: 0.45;
+  clip-path: polygon(
+    0% 100%, 0% 70%, 4% 50%, 7% 62%, 10% 40%, 13% 55%,
+    16% 35%, 19% 50%, 22% 30%, 25% 45%, 28% 35%, 31% 52%,
+    34% 32%, 37% 48%, 40% 38%, 43% 55%, 46% 30%, 49% 48%,
+    52% 35%, 55% 50%, 58% 32%, 61% 48%, 64% 38%, 67% 55%,
+    70% 30%, 73% 45%, 76% 35%, 79% 52%, 82% 32%, 85% 48%,
+    88% 38%, 91% 50%, 94% 40%, 97% 55%, 100% 42%, 100% 100%
+  );
+}
+.treeline--mid {
+  bottom: 36%;
+  height: 26%;
+  background: var(--sage);
+  opacity: 0.65;
+  clip-path: polygon(
+    0% 100%, 0% 58%, 3% 40%, 5% 50%, 8% 25%, 11% 42%,
+    14% 30%, 17% 48%, 20% 22%, 23% 40%, 26% 50%, 29% 28%,
+    32% 45%, 35% 18%, 38% 38%, 41% 30%, 44% 48%, 47% 20%,
+    50% 42%, 53% 30%, 56% 18%, 59% 38%, 62% 48%, 65% 25%,
+    68% 42%, 71% 30%, 74% 18%, 77% 38%, 80% 48%, 83% 25%,
+    86% 42%, 89% 30%, 92% 20%, 95% 38%, 98% 50%, 100% 35%,
+    100% 100%
+  );
+}
+.treeline--near {
+  bottom: 26%;
+  height: 32%;
+  background: var(--sage-dark);
+  z-index: 4;
+  clip-path: polygon(
+    0% 100%, 0% 8%, 3% 22%, 5% 5%, 8% 18%, 10% 28%,
+    13% 12%, 16% 30%, 18% 22%, 20% 38%,
+    23% 50%, 26% 42%, 29% 52%, 32% 62%,
+    36% 72%, 40% 80%, 44% 85%, 48% 88%,
+    52% 88%, 56% 85%, 60% 80%, 64% 72%,
+    68% 62%, 71% 52%, 74% 42%, 77% 50%,
+    80% 38%, 82% 22%, 85% 30%, 87% 12%,
+    90% 28%, 92% 18%, 95% 5%, 97% 22%, 100% 8%,
+    100% 100%
+  );
+}
+
+/* Ground */
+.ground {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 34%;
+  background: linear-gradient(180deg, #8B9E6B 0%, #7A8D5A 35%, #697C49 100%);
+  z-index: 3;
+}
+.path {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16%;
+  height: 100%;
+  background: linear-gradient(180deg, #B8A080 0%, #A89070 55%, #C8B898 100%);
+  clip-path: polygon(32% 0%, 68% 0%, 88% 100%, 12% 100%);
+  opacity: 0.6;
+}
+
+/* Light rays */
+.light-ray {
+  position: absolute;
+  width: 180px;
+  height: 70%;
+  top: 0;
+  background: linear-gradient(180deg, rgba(232,200,138,0.12) 0%, transparent 75%);
+  z-index: 5;
+  pointer-events: none;
+}
+.light-ray--1 { left: 25%; transform: rotate(-12deg); transform-origin: top center; }
+.light-ray--2 { right: 20%; transform: rotate(8deg); transform-origin: top center; opacity: 0.7; }
+
+/* ════════════════════════════════════
+   ARCHIE — CSS CHARACTER
+   ════════════════════════════════════ */
+.archie {
+  position: absolute;
+  bottom: 24%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 200px;
+  z-index: 5;
+  animation: sway 7s ease-in-out infinite;
+}
+
+/* Head */
+.archie__head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 54px;
+  background: var(--skin);
+  border-radius: 46% 46% 42% 42%;
+  border: 3px solid var(--ink);
+  z-index: 2;
+}
+
+/* Hair */
+.archie__hair {
+  position: absolute;
+  top: -8px;
+  left: -2px;
+  right: -2px;
+  height: 24px;
+  z-index: 3;
+}
+.archie__hair::before {
+  content: '';
+  position: absolute;
+  width: 15px; height: 14px;
+  background: var(--warm-brown);
+  border-radius: 55% 45% 50% 50%;
+  top: 1px; left: 5px;
+  transform: rotate(-18deg);
+  border: 2px solid var(--ink);
+}
+.archie__hair::after {
+  content: '';
+  position: absolute;
+  width: 17px; height: 15px;
+  background: var(--warm-brown);
+  border-radius: 45% 55% 50% 50%;
+  top: -1px; right: 3px;
+  transform: rotate(14deg);
+  border: 2px solid var(--ink);
+}
+.archie__hair-tuft {
+  position: absolute;
+  width: 13px; height: 12px;
+  background: var(--warm-brown);
+  border-radius: 50% 50% 40% 40%;
+  top: -4px; left: 50%;
+  transform: translateX(-50%) rotate(-4deg);
+  border: 2px solid var(--ink);
+  z-index: 3;
+}
+
+/* Glasses — THE SIGNATURE */
+.archie__glasses {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px; height: 17px;
+  z-index: 4;
+}
+.archie__glasses::before,
+.archie__glasses::after {
+  content: '';
+  position: absolute;
+  width: 17px; height: 17px;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  top: 0;
+}
+.archie__glasses::before { left: 0; }
+.archie__glasses::after { right: 0; }
+
+.archie__bridge {
+  position: absolute;
+  top: 22px; left: 50%;
+  transform: translateX(-50%);
+  width: 6px; height: 2px;
+  background: var(--ink);
+  z-index: 4;
+}
+
+/* Eyes */
+.archie__eyes {
+  position: absolute;
+  top: 22px; left: 50%;
+  transform: translateX(-50%);
+  width: 28px; height: 4px;
+  z-index: 4;
+}
+.archie__eyes::before,
+.archie__eyes::after {
+  content: '';
+  position: absolute;
+  width: 3px; height: 3.5px;
+  background: var(--ink);
+  border-radius: 50%;
+  top: 0;
+  animation: blink 4.5s ease-in-out infinite;
+}
+.archie__eyes::before { left: 4px; }
+.archie__eyes::after { right: 4px; }
+
+/* Mouth */
+.archie__mouth {
+  position: absolute;
+  bottom: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 7px; height: 3px;
+  border-bottom: 2px solid var(--ink);
+  border-radius: 0 0 50% 50%;
+  z-index: 4;
+}
+
+/* Collar */
+.archie__collar {
+  position: absolute;
+  top: 46px; left: 50%;
+  transform: translateX(-50%);
+  width: 34px; height: 10px;
+  background: var(--teal);
+  border: 2px solid var(--ink);
+  border-radius: 2px 2px 0 0;
+  z-index: 2;
+}
+
+/* Coat */
+.archie__coat {
+  position: absolute;
+  top: 50px; left: 50%;
+  transform: translateX(-50%);
+  width: 64px; height: 86px;
+  background: var(--amber);
+  border: 3px solid var(--ink);
+  border-radius: 3px 3px 5px 5px;
+  clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
+  animation: breathe 4s ease-in-out infinite;
+}
+.archie__pocket {
+  position: absolute;
+  bottom: 18px; left: 14px;
+  width: 16px; height: 12px;
+  border: 2px solid rgba(42,31,20,0.35);
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+}
+
+/* Arms */
+.archie__arm {
+  position: absolute;
+  width: 10px;
+  background: var(--amber);
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  top: 58px;
+}
+.archie__arm--l { left: 17px; height: 40px; transform: rotate(6deg); }
+.archie__arm--r { right: 17px; height: 36px; transform: rotate(-4deg); }
+.archie__arm::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; left: 50%;
+  transform: translateX(-50%);
+  width: 9px; height: 9px;
+  background: var(--skin);
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+}
+
+/* Notebook */
+.archie__notebook {
+  position: absolute;
+  top: 90px; right: 12px;
+  width: 14px; height: 18px;
+  background: var(--amber-light);
+  border: 2px solid var(--ink);
+  border-radius: 1px 3px 3px 1px;
+  transform: rotate(8deg);
+  z-index: 1;
+}
+
+/* Legs */
+.archie__legs {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 36px; height: 50px;
+}
+.archie__leg {
+  position: absolute;
+  bottom: 8px;
+  width: 11px; height: 30px;
+  background: var(--warm-brown);
+  border: 2px solid var(--ink);
+  border-radius: 3px 3px 0 0;
+}
+.archie__leg--l { left: 2px; }
+.archie__leg--r { right: 2px; }
+.archie__leg::after {
+  content: '';
+  position: absolute;
+  bottom: -6px; left: -3px;
+  width: 16px; height: 7px;
+  background: #8B5E3C;
+  border: 2px solid var(--ink);
+  border-radius: 4px 5px 3px 3px;
+}
+
+/* Fireflies */
+.firefly {
+  position: absolute;
+  width: 4px; height: 4px;
+  background: #FFE8A0;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 3px rgba(255,232,160,0.5);
+  z-index: 6;
+  animation: firefly-drift var(--dur, 5s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+/* Scene title */
+.scene__title {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+}
+.scene__title h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 400;
+  color: var(--cream);
+  text-shadow: 0 2px 12px rgba(42,31,20,0.3);
+  letter-spacing: 0.02em;
+}
+.scene__title p {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(16px, 2.5vw, 24px);
+  color: var(--amber-light);
+  margin-top: 4px;
+}
+
+/* Scroll hint */
+.scene__scroll {
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  color: var(--amber-light);
+  opacity: 0.6;
+  animation: bob 2.5s ease-in-out infinite;
+}
+
+/* Scene bottom shadow */
+.scene::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 50px;
+  background: linear-gradient(180deg, transparent, rgba(42,31,20,0.12));
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* ════════════════════════════════════
+   TORN PAPER EDGE
+   ════════════════════════════════════ */
+.page-tear {
+  position: relative;
+  height: 25px;
+  background: var(--cream);
+  margin-top: -15px;
+  z-index: 7;
+  clip-path: polygon(
+    0% 55%, 3% 22%, 6% 50%, 9% 12%, 12% 48%, 15% 18%,
+    18% 52%, 21% 28%, 24% 58%, 27% 18%, 30% 48%, 33% 22%,
+    36% 52%, 39% 12%, 42% 48%, 45% 22%, 48% 52%, 51% 28%,
+    54% 58%, 57% 18%, 60% 48%, 63% 22%, 66% 52%, 69% 12%,
+    72% 48%, 75% 18%, 78% 52%, 81% 28%, 84% 58%, 87% 18%,
+    90% 48%, 93% 22%, 96% 52%, 100% 28%,
+    100% 100%, 0% 100%
+  );
+}
+
+/* ════════════════════════════════════
+   CHAPTER SECTIONS
+   ════════════════════════════════════ */
+.chapter {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 56px 32px;
+  position: relative;
+}
+.chapter + .chapter {
+  border-top: 1px solid var(--amber-light);
+}
+.chapter h2 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 400;
+  margin-bottom: 6px;
+  color: var(--warm-brown);
+}
+.chapter .subtitle {
+  font-family: 'Caveat', cursive;
+  color: #8B7355;
+  font-size: 17px;
+  margin-bottom: 24px;
+}
+.chapter p {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+.chapter strong {
+  color: var(--warm-brown);
+}
+
+/* Flourish divider */
+.flourish {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 36px 0;
+  gap: 12px;
+}
+.flourish::before, .flourish::after {
+  content: '';
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+}
+.flourish-dot {
+  width: 6px; height: 6px;
+  background: var(--amber);
+  border-radius: 50%;
+}
+
+/* ════════════════════════════════════
+   DIALOGUE BOXES (EarthBound style)
+   ════════════════════════════════════ */
+.dialogue {
+  background: linear-gradient(180deg, #1F1510, #2A1F14);
+  border: 3px solid var(--amber);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px rgba(193,127,58,0.15), 0 6px 24px rgba(42,31,20,0.25);
+  padding: 20px 24px 20px 84px;
+  color: var(--cream);
+  position: relative;
+  max-width: 520px;
+  margin: 20px auto;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.dialogue.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mini portrait */
+.dialogue__portrait {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 56px; height: 56px;
+  border-radius: 8px;
+  border: 2px solid var(--amber);
+  background: #0F0A06;
+  overflow: hidden;
+}
+.portrait-head {
+  width: 24px; height: 26px;
+  background: var(--skin);
+  border-radius: 46% 46% 42% 42%;
+  border: 2px solid var(--ink);
+  margin: 6px auto 0;
+  position: relative;
+}
+.portrait-glasses {
+  position: absolute;
+  top: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 20px; height: 2px;
+  background: var(--ink);
+}
+.portrait-glasses::before,
+.portrait-glasses::after {
+  content: '';
+  position: absolute;
+  width: 9px; height: 9px;
+  border: 1.5px solid var(--amber-light);
+  border-radius: 50%;
+  top: -4px;
+}
+.portrait-glasses::before { left: -2px; }
+.portrait-glasses::after { right: -2px; }
+.portrait-hair {
+  position: absolute;
+  top: -3px; left: 2px; right: 2px;
+  height: 8px;
+  background: var(--warm-brown);
+  border-radius: 50% 50% 30% 30%;
+  border: 1.5px solid var(--ink);
+}
+
+.dialogue__text {
+  font-family: 'Newsreader', serif;
+  font-size: 15px;
+  line-height: 1.6;
+  font-style: italic;
+}
+.dialogue__label {
+  font-family: 'Caveat', cursive;
+  font-size: 13px;
+  color: #8B7355;
+  margin-top: 6px;
+}
+
+/* ════════════════════════════════════
+   RPG ITEM-GET
+   ════════════════════════════════════ */
+.item-get {
+  background: #1F1510;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 24px 32px;
+  text-align: center;
+  max-width: 420px;
+  margin: 28px auto;
+  box-shadow: 0 0 30px rgba(212,165,74,0.15);
+  opacity: 0;
+  transform: scale(0.92);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.item-get.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+.item-get__label {
+  font-family: 'Caveat', cursive;
+  color: var(--gold);
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.item-get__name {
+  color: var(--cream);
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.item-get__type {
+  font-size: 12px;
+  color: #8B7355;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* Item grid */
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+.item-card {
+  background: #1F1510;
+  border: 1.5px solid rgba(212,165,74,0.3);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+.item-card__icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.item-card__name {
+  font-family: 'Fraunces', serif;
+  color: var(--cream);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.item-card__desc {
+  font-size: 11px;
+  color: #8B7355;
+}
+
+/* ════════════════════════════════════
+   DNA SOURCE CARDS
+   ════════════════════════════════════ */
+.dna-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 28px 0;
+}
+.dna-card {
+  background: #FDF6EC;
+  border: 1px solid var(--amber-light);
+  border-radius: 12px;
+  padding: 24px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.dna-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dna-card h4 {
+  font-family: 'Fraunces', serif;
+  color: var(--amber);
+  font-size: 15px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.dna-card p {
+  font-size: 13.5px;
+  margin-bottom: 0;
+  line-height: 1.7;
+}
+
+/* ════════════════════════════════════
+   MARGINALIA
+   ════════════════════════════════════ */
+.marginalia {
+  font-family: 'Caveat', cursive;
+  color: #8B7355;
+  font-size: 16px;
+  position: absolute;
+  transform: rotate(var(--rot, -2deg));
+  opacity: 0;
+  transition: opacity 0.8s ease 0.4s;
+}
+.marginalia.visible { opacity: 1; }
+
+/* ════════════════════════════════════
+   NOT-LIST
+   ════════════════════════════════════ */
+.not-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.not-list li {
+  padding: 10px 0 10px 28px;
+  position: relative;
+  border-bottom: 1px solid var(--amber-light);
+  font-size: 14.5px;
+}
+.not-list li:last-child { border-bottom: none; }
+.not-list li::before {
+  content: '\00D7';
+  position: absolute;
+  left: 2px;
+  color: var(--amber);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* ════════════════════════════════════
+   VISION BLOCKQUOTE
+   ════════════════════════════════════ */
+.vision {
+  background: linear-gradient(135deg, #FDF6EC, var(--parchment));
+  border: 2px solid var(--amber);
+  border-radius: 14px;
+  padding: 40px;
+  margin: 36px 0;
+  font-style: italic;
+  font-size: 16.5px;
+  line-height: 1.9;
+  color: var(--warm-brown);
+  position: relative;
+}
+.vision::before {
+  content: '\201C';
+  font-family: 'Fraunces', serif;
+  font-size: 80px;
+  color: var(--amber);
+  opacity: 0.2;
+  position: absolute;
+  top: 8px; left: 20px;
+  line-height: 1;
+}
+
+/* ════════════════════════════════════
+   WAITING STATE SCENE
+   ════════════════════════════════════ */
+.waiting-scene {
+  position: relative;
+  height: 260px;
+  background: linear-gradient(180deg, #1A2A1A 0%, #2A3A2A 60%, #3A4A3A 100%);
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 28px 0;
+}
+.waiting-scene__ground {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
+  background: linear-gradient(180deg, #3A4A2A, #2A3A1A);
+}
+.waiting-scene .log {
+  position: absolute;
+  bottom: 35%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 20px;
+  background: #5C4433;
+  border-radius: 10px;
+  border: 2px solid #3D2B1F;
+}
+.waiting-scene .archie-mini {
+  position: absolute;
+  bottom: 42%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 48px;
+}
+.archie-mini__head {
+  width: 18px; height: 20px;
+  background: var(--skin);
+  border-radius: 46% 46% 42% 42%;
+  border: 2px solid var(--ink);
+  margin: 0 auto;
+  position: relative;
+}
+.archie-mini__glasses {
+  position: absolute;
+  top: 6px; left: 50%;
+  transform: translateX(-50%);
+  width: 14px; height: 2px;
+  background: var(--ink);
+}
+.archie-mini__glasses::before,
+.archie-mini__glasses::after {
+  content: '';
+  position: absolute;
+  width: 6px; height: 6px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  top: -2px;
+}
+.archie-mini__glasses::before { left: -1px; }
+.archie-mini__glasses::after { right: -1px; }
+.archie-mini__coat {
+  width: 24px; height: 22px;
+  background: var(--amber);
+  border: 2px solid var(--ink);
+  margin: -2px auto 0;
+  border-radius: 2px 2px 4px 4px;
+}
+.waiting-scene .firefly {
+  z-index: 2;
+}
+.waiting-scene__caption {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Caveat', cursive;
+  color: #8B9E6B;
+  font-size: 14px;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════ */
+.colophon {
+  text-align: center;
+  padding: 48px 32px 64px;
+  color: #8B7355;
+  font-size: 14px;
+}
+.colophon .name {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+.colophon .tagline {
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+}
+
+/* ════════════════════════════════════
+   ANIMATIONS
+   ════════════════════════════════════ */
+@keyframes sway {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  50% { transform: translateX(-50%) rotate(0.4deg); }
+}
+@keyframes breathe {
+  0%, 100% { transform: translateX(-50%) scaleY(1); }
+  50% { transform: translateX(-50%) scaleY(1.012); }
+}
+@keyframes blink {
+  0%, 90%, 95%, 100% { transform: scaleY(1); }
+  92% { transform: scaleY(0.1); }
+}
+@keyframes firefly-drift {
+  0%   { opacity: 0.15; transform: translate(0, 0); }
+  25%  { opacity: 0.9;  transform: translate(8px, -14px); }
+  50%  { opacity: 0.5;  transform: translate(-6px, -22px); }
+  75%  { opacity: 1;    transform: translate(12px, -8px); }
+  100% { opacity: 0.15; transform: translate(0, 0); }
+}
+@keyframes bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+/* ════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════ */
+@media (max-width: 720px) {
+  .chapter { padding: 40px 20px; }
+  .dna-grid { grid-template-columns: 1fr; }
+  .dialogue { padding-left: 20px; padding-top: 72px; }
+  .dialogue__portrait { top: 12px; left: 50%; transform: translateX(-50%); }
+  .marginalia { display: none; }
+  .item-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 1: THE FOREST SCENE
+     ═══════════════════════════════════════════════════ -->
+<section class="scene">
+  <div class="sky"></div>
+  <div class="cloud cloud--1"></div>
+  <div class="cloud cloud--2"></div>
+  <div class="cloud cloud--3"></div>
+  <div class="hill hill--1"></div>
+  <div class="hill hill--2"></div>
+  <div class="hill hill--3"></div>
+  <div class="treeline treeline--far"></div>
+  <div class="treeline treeline--mid"></div>
+  <div class="ground"><div class="path"></div></div>
+
+  <!-- Archie -->
+  <div class="archie">
+    <div class="archie__head">
+      <div class="archie__hair"><div class="archie__hair-tuft"></div></div>
+      <div class="archie__glasses"></div>
+      <div class="archie__bridge"></div>
+      <div class="archie__eyes"></div>
+      <div class="archie__mouth"></div>
+    </div>
+    <div class="archie__collar"></div>
+    <div class="archie__coat"><div class="archie__pocket"></div></div>
+    <div class="archie__arm archie__arm--l"></div>
+    <div class="archie__arm archie__arm--r"></div>
+    <div class="archie__notebook"></div>
+    <div class="archie__legs">
+      <div class="archie__leg archie__leg--l"></div>
+      <div class="archie__leg archie__leg--r"></div>
+    </div>
+  </div>
+
+  <div class="treeline treeline--near"></div>
+  <div class="light-ray light-ray--1"></div>
+  <div class="light-ray light-ray--2"></div>
+
+  <!-- Fireflies -->
+  <div class="firefly" style="left:22%;top:52%;--dur:4.5s;--delay:0s"></div>
+  <div class="firefly" style="left:68%;top:48%;--dur:5.2s;--delay:1.2s"></div>
+  <div class="firefly" style="left:35%;top:58%;--dur:3.8s;--delay:0.6s"></div>
+  <div class="firefly" style="left:75%;top:55%;--dur:4.8s;--delay:2s"></div>
+  <div class="firefly" style="left:15%;top:62%;--dur:5.5s;--delay:0.3s"></div>
+  <div class="firefly" style="left:82%;top:44%;--dur:4.2s;--delay:1.8s"></div>
+  <div class="firefly" style="left:48%;top:50%;--dur:5s;--delay:0.8s"></div>
+
+  <div class="scene__title">
+    <h1>Archie</h1>
+    <p>a picture book that plays like an RPG</p>
+  </div>
+  <div class="scene__scroll">scroll down</div>
+</section>
+
+<div class="page-tear"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 2: MEET ARCHIE
+     ═══════════════════════════════════════════════════ -->
+<section class="chapter" id="meet">
+  <h2>Who is Archie?</h2>
+  <div class="subtitle">architecture consultant, thread-puller, the one who figures it out</div>
+
+  <p><strong>Archie</strong> is your architecture consultant. He lives in your browser, reads your codebase, and remembers what he learns. He's the kind of guy who looks at your data flow diagram and quietly says, <em>"This is going to be a problem in six months."</em></p>
+
+  <p>He pulls threads, sees patterns others miss, and is always &mdash; always &mdash; the one who actually figures it out. He's warm, direct, and a little nerdy. He doesn't do vague. If your service boundaries are wrong, he'll tell you &mdash; but he'll also explain why, and what he'd do instead.</p>
+
+  <span class="marginalia" style="right:-160px;top:80px;--rot:-3deg">he used to go by<br>a different name</span>
+  <span class="marginalia" style="right:-150px;top:200px;--rot:2deg">the glasses are<br>the tell</span>
+
+  <div class="flourish"><span class="flourish-dot"></span></div>
+
+  <p style="font-family:'Caveat',cursive;font-size:18px;color:#8B7355;text-align:center;margin-bottom:28px;">He has a few tells&hellip;</p>
+
+  <!-- Dialogue boxes -->
+  <div class="dialogue reveal">
+    <div class="dialogue__portrait">
+      <div class="portrait-head">
+        <div class="portrait-hair"></div>
+        <div class="portrait-glasses"></div>
+      </div>
+    </div>
+    <div class="dialogue__text">"Let me dig into that..."</div>
+    <div class="dialogue__label">when he's about to pull your architecture apart (gently)</div>
+  </div>
+
+  <div class="dialogue reveal">
+    <div class="dialogue__portrait">
+      <div class="portrait-head">
+        <div class="portrait-hair"></div>
+        <div class="portrait-glasses"></div>
+      </div>
+    </div>
+    <div class="dialogue__text">"Okay, I see what's happening here."</div>
+    <div class="dialogue__label">when he found the thing</div>
+  </div>
+
+  <div class="dialogue reveal">
+    <div class="dialogue__portrait">
+      <div class="portrait-head">
+        <div class="portrait-hair"></div>
+        <div class="portrait-glasses"></div>
+      </div>
+    </div>
+    <div class="dialogue__text">"That's... actually a problem."</div>
+    <div class="dialogue__label">when you should probably listen</div>
+  </div>
+
+  <p style="margin-top:28px;">He remembers everything. Every conversation adds to his understanding of your project. The more you talk to him, the better he gets. He saves what he learns to <code style="font-family:'Fira Code',monospace;font-size:13px;background:var(--parchment);padding:2px 7px;border-radius:3px;color:var(--amber);">archie.md</code> so he remembers next time.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 3: THE LIVING PAGE
+     ═══════════════════════════════════════════════════ -->
+<section class="chapter" id="world">
+  <h2>The Living Page</h2>
+  <div class="subtitle">the page IS the overworld</div>
+
+  <p>Archie is a hand-drawn character who lives in a book that behaves like a game. The user is reading a living page &mdash; ink illustrations, warm color washes, handwritten marginalia &mdash; but the illustrations move, the character walks, you can talk to him, and he gives you things.</p>
+
+  <div class="flourish"><span class="flourish-dot"></span></div>
+
+  <h3 style="font-family:'Fraunces',serif;font-size:18px;color:var(--amber);margin-bottom:12px;font-weight:500;">Chat as Dialogue Box</h3>
+  <p>EarthBound-style dialogue rises from the bottom of the viewport. Text crawls character by character with a soft <em>tick-tick-tick</em>. Archie's portrait shifts expressions &mdash; thinking, eureka, concerned. Code blocks render like scratched-on graph paper.</p>
+
+  <h3 style="font-family:'Fraunces',serif;font-size:18px;color:var(--amber);margin:28px 0 12px;font-weight:500;">Responses as RPG Items</h3>
+  <p>Responses aren't just text &mdash; they're objects Archie gives you.</p>
+
+  <div class="item-get reveal">
+    <div class="item-get__label">You received:</div>
+    <div class="item-get__name">Archie's Analysis</div>
+    <div class="item-get__type">Architecture Review</div>
+  </div>
+
+  <div class="item-grid">
+    <div class="item-card">
+      <div class="item-card__icon">&#x1F4DC;</div>
+      <div class="item-card__name">Code Review</div>
+      <div class="item-card__desc">a scroll</div>
+    </div>
+    <div class="item-card">
+      <div class="item-card__icon">&#x1F48E;</div>
+      <div class="item-card__name">Refactor</div>
+      <div class="item-card__desc">a crystal</div>
+    </div>
+    <div class="item-card">
+      <div class="item-card__icon">&#x1F9EA;</div>
+      <div class="item-card__name">Bug Fix</div>
+      <div class="item-card__desc">a potion</div>
+    </div>
+    <div class="item-card">
+      <div class="item-card__icon">&#x1F5FA;</div>
+      <div class="item-card__name">Architecture</div>
+      <div class="item-card__desc">a map fragment</div>
+    </div>
+  </div>
+
+  <h3 style="font-family:'Fraunces',serif;font-size:18px;color:var(--amber);margin:28px 0 12px;font-weight:500;">The Waiting State</h3>
+  <p>When waiting for a response, the scene expands. Archie walks deeper into the clearing, sits on a log, pulls out his notebook. Fireflies intensify. The world breathes while thinking happens.</p>
+
+  <div class="waiting-scene">
+    <div class="waiting-scene__ground"></div>
+    <div class="log"></div>
+    <div class="archie-mini">
+      <div class="archie-mini__head">
+        <div class="archie-mini__glasses"></div>
+      </div>
+      <div class="archie-mini__coat"></div>
+    </div>
+    <div class="firefly" style="left:18%;top:30%;--dur:3.5s;--delay:0s"></div>
+    <div class="firefly" style="left:72%;top:25%;--dur:4.2s;--delay:0.8s"></div>
+    <div class="firefly" style="left:40%;top:35%;--dur:5s;--delay:1.5s"></div>
+    <div class="firefly" style="left:60%;top:20%;--dur:3.8s;--delay:0.4s"></div>
+    <div class="firefly" style="left:85%;top:40%;--dur:4.5s;--delay:2s"></div>
+    <div class="firefly" style="left:30%;top:18%;--dur:5.2s;--delay:1s"></div>
+    <div class="waiting-scene__caption">the world breathes while thinking happens</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     PAGE 4: AN EARNEST PLACE
+     ═══════════════════════════════════════════════════ -->
+<section class="chapter" id="feeling">
+  <h2>An Earnest Place</h2>
+  <div class="subtitle">warm + handmade + earnest-not-ironic</div>
+
+  <p>Archie lives at the intersection of three things that shouldn't work together but do.</p>
+
+  <div class="dna-grid">
+    <div class="dna-card reveal">
+      <h4>From _why the lucky stiff</h4>
+      <p>Chunky hand-drawn characters interrupting content. Humor in the margins. Art that's rough on purpose. The feeling that someone made this for you at 2 AM.</p>
+    </div>
+    <div class="dna-card reveal">
+      <h4>From Harry Potter</h4>
+      <p>The page is alive. Ink moves. Portraits talk back. Maps reveal themselves. The medium itself is magical, not just the content displayed on it.</p>
+    </div>
+    <div class="dna-card reveal">
+      <h4>From EarthBound</h4>
+      <p>Dialogue boxes with text crawl. A safe place to be confused. An NPC who notices you're there. Serious things said simply.</p>
+    </div>
+  </div>
+
+  <div class="flourish"><span class="flourish-dot"></span></div>
+
+  <h3 style="font-family:'Fraunces',serif;font-size:18px;color:var(--amber);margin-bottom:12px;font-weight:500;">What This Is Not</h3>
+  <ul class="not-list">
+    <li><strong>Not a game</strong> &mdash; there are no goals, no progression, no fail states</li>
+    <li><strong>Not pixel art</strong> &mdash; hand-drawn ink and color wash, not grid-aligned</li>
+    <li><strong>Not polished/corporate</strong> &mdash; deliberately rough, handmade, personal</li>
+    <li><strong>Not ironic retro</strong> &mdash; earnestly recreating warmth, not winking at nostalgia</li>
+    <li><strong>Not decoration</strong> &mdash; the visual experience IS the product differentiator</li>
+  </ul>
+
+  <div class="vision">
+    The pastoral scene is not a background. It is a world. Archie is not an avatar. He is a character. The dialogue box is not a UI element. It is a conversation between two people in a clearing in the woods, and one of them has been waiting for you.
+  </div>
+</section>
+
+<footer class="colophon">
+  <div class="flourish"><span class="flourish-dot"></span></div>
+  <div class="name">Archie</div>
+  <div class="tagline">an architecture consultant who lives in your browser</div>
+</footer>
+
+<script>
+// Scroll-triggered reveals
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal, .dialogue, .item-get, .dna-card, .marginalia').forEach(el => {
+  observer.observe(el);
+});
+
+// Stagger dialogue box reveals
+const dialogues = document.querySelectorAll('.dialogue');
+dialogues.forEach((d, i) => {
+  d.style.transitionDelay = `${i * 0.2}s`;
+});
+
+// Stagger DNA cards
+const dnaCards = document.querySelectorAll('.dna-card');
+dnaCards.forEach((c, i) => {
+  c.style.transitionDelay = `${i * 0.15}s`;
+});
+
+// Subtle parallax on scene mouse move
+const scene = document.querySelector('.scene');
+if (scene && window.matchMedia('(min-width: 768px)').matches) {
+  scene.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5);
+    const treeFar = scene.querySelector('.treeline--far');
+    const treeMid = scene.querySelector('.treeline--mid');
+    const treeNear = scene.querySelector('.treeline--near');
+    if (treeFar) treeFar.style.transform = `translateX(${x * 4}px)`;
+    if (treeMid) treeMid.style.transform = `translateX(${x * 8}px)`;
+    if (treeNear) treeNear.style.transform = `translateX(${x * 14}px)`;
+  });
+}
+</script>
+</body>
+</html>
