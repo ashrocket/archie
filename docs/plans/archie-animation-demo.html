@@ -2100,6 +2100,7 @@ async function startCrawler() {
   const pHeight = panelRect.height;
 
   archie.classList.remove('at-chat');
+  archie.classList.add('crawler-mode');
   archie.style.transition = 'none';
 
   let t = 0;
@@ -2107,44 +2108,160 @@ async function startCrawler() {
   let targetSpeed = 0.002;
   let lastTyping = 0;
   let typeCount = 0;
-  let lastPeekTime = 0;
-  let lastTapTime = 0;
+  let loopCount = 0;
+  let inCornerTransition = false;
+  let inMoment = false;
+
+  // Moment cooldowns
+  let lastSlipLoop = -3;
+  let lastBreatherLoop = -2;
+  let lastPeekT = -1;
 
   document.getElementById('chatInput').focus();
 
+  function getEdge(pos) {
+    if (pos < 1) return 'bottom';
+    if (pos < 2) return 'right';
+    if (pos < 3) return 'top';
+    return 'left';
+  }
+
+  function setEdgeClass(edge) {
+    ['edge-bottom', 'edge-right', 'edge-top', 'edge-left'].forEach(c =>
+      archie.classList.remove(c)
+    );
+    archie.classList.add('edge-' + edge);
+  }
+
+  function clearCornerClasses() {
+    ['corner-br', 'corner-rt', 'corner-tl', 'corner-lb', 'corner-transition'].forEach(c =>
+      archie.classList.remove(c)
+    );
+  }
+
+  function clearMomentClasses() {
+    ['near-slip', 'breather', 'wiping-brow'].forEach(c =>
+      archie.classList.remove(c)
+    );
+  }
+
   function updateCrawlerPos() {
     const pos = t % 4;
-    let x, y, rot;
+    let x, y;
 
     if (pos < 1) {
+      // Bottom edge — walk left to right
       x = pLeft + pos * pWidth;
       y = pTop + pHeight - 10;
-      rot = 0;
+      archie.style.transform = '';
     } else if (pos < 2) {
+      // Right edge — climb up
       const p = pos - 1;
-      x = pLeft + pWidth - 5;
+      x = pLeft + pWidth + 5;
       y = pTop + pHeight - p * pHeight - 20;
-      rot = 90;
+      archie.style.transform = '';
     } else if (pos < 3) {
+      // Top edge — shuffle right to left
       const p = pos - 2;
       x = pLeft + pWidth - p * pWidth - 20;
-      y = pTop - 40;
-      rot = 180;
+      y = pTop - 50;
+      archie.style.transform = '';
     } else {
+      // Left edge — climb down
       const p = pos - 3;
-      x = pLeft - 35;
+      x = pLeft - 45;
       y = pTop + p * pHeight - 10;
-      rot = -90;
+      archie.style.transform = '';
     }
 
     archie.style.left = x + 'px';
     archie.style.top = y + 'px';
     archie.style.right = 'auto';
     archie.style.bottom = 'auto';
-    archie.style.transform = `rotate(${rot}deg)`;
   }
 
-  // Typing handler with personality
+  // Corner transition (async, pauses crawl)
+  async function doCornerTransition(cornerName) {
+    inCornerTransition = true;
+    archie.classList.add('corner-transition', 'corner-' + cornerName);
+    glassesBounce();
+    await sleep(450);
+    clearCornerClasses();
+    inCornerTransition = false;
+  }
+
+  // ─── SIGNATURE MOMENTS ───
+
+  async function doNearSlip() {
+    if (inMoment || speed > 0.006) return;
+    inMoment = true;
+    lastSlipLoop = loopCount;
+    showLabel('Whoa\u2014! Nearly slipped!');
+    archie.classList.add('near-slip');
+    setExpression('wide-eyed');
+    setExpression('brows-raised');
+    hairBounce();
+    await sleep(600);
+    archie.classList.remove('near-slip');
+    // Relief
+    setExpression('');
+    adjustGlasses(400);
+    flashGlint();
+    await sleep(500);
+    showLabel('The Impatient Crawler \u2014 type in the box to see Archie react');
+    inMoment = false;
+  }
+
+  async function doPeek() {
+    if (inMoment || speed > 0.006) return;
+    inMoment = true;
+    lastPeekT = t;
+    showLabel('Peeking into the chat...');
+    archie.classList.add('peeking');
+    setExpression('brows-raised');
+    await sleep(600);
+    archie.classList.remove('peeking');
+    // If user has typed, look curious
+    if (document.getElementById('chatInput').value.length > 0) {
+      archie.classList.add('looking-left');
+      setExpression('excited');
+      await sleep(500);
+      archie.classList.remove('looking-left');
+    }
+    setExpression('');
+    await sleep(200);
+    showLabel('The Impatient Crawler \u2014 type in the box to see Archie react');
+    inMoment = false;
+  }
+
+  async function doBreather() {
+    if (inMoment || speed > 0.006) return;
+    inMoment = true;
+    lastBreatherLoop = loopCount;
+    showLabel('Taking a breather...');
+    archie.classList.add('breather');
+    setExpression('sleepy-eyes');
+    await sleep(800);
+    // Wipe brow
+    archie.classList.add('wiping-brow');
+    await sleep(800);
+    archie.classList.remove('wiping-brow');
+    // Look down
+    archie.classList.add('looking-left');
+    setExpression('brows-worried');
+    await sleep(600);
+    archie.classList.remove('looking-left');
+    // Stand back up
+    archie.classList.remove('breather');
+    setExpression('');
+    squashStretch('settling', 300);
+    await sleep(400);
+    showLabel('The Impatient Crawler \u2014 type in the box to see Archie react');
+    inMoment = false;
+  }
+
+  // ─── TYPING HANDLER ───
+
   const input = document.getElementById('chatInput');
   const typingHandler = () => {
     lastTyping = performance.now();
@@ -2152,7 +2269,6 @@ async function startCrawler() {
     targetSpeed = 0.008;
     setExpression('excited');
 
-    // Rapid typing = more excited
     if (typeCount > 15) {
       setExpression('wide-eyed');
       setExpression('brows-raised');
@@ -2164,8 +2280,6 @@ async function startCrawler() {
       targetSpeed = 0.002;
       setExpression('');
       typeCount = 0;
-
-      // Bored foot tap when they stop
       archie.classList.add('tapping');
       setTimeout(() => archie.classList.remove('tapping'), 800);
     }, 1800);
@@ -2173,33 +2287,71 @@ async function startCrawler() {
   input.addEventListener('input', typingHandler);
   archie._typingHandler = typingHandler;
 
-  // Enable dangling legs when upside down
-  function updateDangle(pos) {
-    if (pos >= 2 && pos < 3) {
-      if (!archie.classList.contains('dangling')) {
-        archie.classList.add('dangling');
-      }
-    } else {
-      archie.classList.remove('dangling');
-    }
-  }
+  // ─── MAIN CRAWL LOOP ───
 
   function crawlFrame(now) {
+    if (inCornerTransition || inMoment) {
+      crawlerRAF = requestAnimationFrame(crawlFrame);
+      return;
+    }
+
     // Smooth speed interpolation
     speed += (targetSpeed - speed) * 0.08;
 
+    const prevEdge = getEdge(t % 4);
     t += speed;
-    if (t > 4) t -= 4;
-    updateCrawlerPos();
-    updateDangle(t % 4);
-
-    // Peek at corners
     const pos = t % 4;
-    const atCorner = (pos % 1) < 0.05 || (pos % 1) > 0.95;
-    if (atCorner && now - lastPeekTime > 3000) {
-      lastPeekTime = now;
-      archie.classList.add('peeking');
-      setTimeout(() => archie.classList.remove('peeking'), 600);
+    const currentEdge = getEdge(pos);
+
+    // Track loop completions
+    if (prevEdge === 'left' && currentEdge === 'bottom') {
+      loopCount++;
+    }
+
+    // Edge changed — handle transition
+    if (currentEdge !== prevEdge) {
+      // Determine corner name
+      let cornerName = '';
+      if (prevEdge === 'bottom' && currentEdge === 'right') cornerName = 'br';
+      else if (prevEdge === 'right' && currentEdge === 'top') cornerName = 'rt';
+      else if (prevEdge === 'top' && currentEdge === 'left') cornerName = 'tl';
+      else if (prevEdge === 'left' && currentEdge === 'bottom') cornerName = 'lb';
+
+      if (cornerName) {
+        // Trigger near-slip randomly at corners (once per loop, with cooldown)
+        const canSlip = (loopCount - lastSlipLoop) >= 2 && Math.random() < 0.3;
+        if (canSlip) {
+          doCornerTransition(cornerName).then(() => doNearSlip());
+        } else {
+          doCornerTransition(cornerName);
+        }
+
+        // Landing squash at bottom-left corner
+        if (cornerName === 'lb') {
+          setTimeout(() => {
+            squashStretch('landing', 120);
+            glassesBounce();
+            hairBounce();
+            setTimeout(() => squashStretch('settling', 300), 150);
+          }, 450);
+        }
+      }
+
+      setEdgeClass(currentEdge);
+    }
+
+    updateCrawlerPos();
+
+    // ─── MOMENT TRIGGERS ───
+
+    // Peek: right edge, around midpoint
+    if (currentEdge === 'right' && pos > 1.4 && pos < 1.6 && (t - lastPeekT) > 2) {
+      doPeek();
+    }
+
+    // Breather: top edge, around midpoint, with cooldown
+    if (currentEdge === 'top' && pos > 2.3 && pos < 2.5 && (loopCount - lastBreatherLoop) >= 1) {
+      doBreather();
     }
 
     // Occasional glasses adjust
@@ -2207,16 +2359,11 @@ async function startCrawler() {
       adjustGlasses(300);
     }
 
-    // Occasional foot tap when idle
-    if (speed < 0.003 && Math.random() < 0.003 && now - lastTapTime > 4000) {
-      lastTapTime = now;
-      archie.classList.add('tapping');
-      setTimeout(() => archie.classList.remove('tapping'), 800);
-    }
-
     crawlerRAF = requestAnimationFrame(crawlFrame);
   }
 
+  // Initialize
+  setEdgeClass('bottom');
   updateCrawlerPos();
   crawlerRAF = requestAnimationFrame(crawlFrame);
 }
