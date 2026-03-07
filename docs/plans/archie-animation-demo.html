@@ -1,0 +1,2428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archie Animation Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #2A1F14;
+  --cream: #FFF8F0;
+  --parchment: #F5E6C8;
+  --warm-brown: #3D2B1F;
+  --amber: #C17F3A;
+  --amber-dark: #A66A2E;
+  --amber-light: #E8D5B8;
+  --teal: #2D6A6A;
+  --sage: #7B9E6B;
+  --sage-dark: #5B7E4B;
+  --skin: #F2D5A8;
+  --gold: #D4A54A;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Libre Baskerville', Georgia, serif;
+  background: #2A2420;
+  color: var(--cream);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ═══════ STAGE ═══════ */
+.stage {
+  position: relative;
+  width: 800px;
+  height: 560px;
+}
+
+/* ═══════ FOREST SCENE ═══════ */
+.forest-scene {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  opacity: 0;
+  clip-path: circle(0% at 75% 50%);
+  transition: clip-path 1.0s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+  z-index: 5;
+}
+
+.forest-scene.active {
+  opacity: 1;
+  clip-path: circle(100% at 75% 50%);
+}
+
+.forest-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #C49A50 0%, #D4A854 15%, #E0BE78 35%, #E8D098 55%, #D0D4C0 85%);
+}
+
+.forest-treeline {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  transition: transform 0.3s ease;
+}
+
+.forest-treeline--far {
+  bottom: 38%;
+  height: 24%;
+  background: #9BB08B;
+  opacity: 0.5;
+  clip-path: polygon(0% 100%, 0% 50%, 5% 32%, 10% 48%, 15% 28%, 20% 44%, 25% 22%, 30% 42%, 35% 32%, 40% 50%, 45% 28%, 50% 44%, 55% 22%, 60% 40%, 65% 30%, 70% 48%, 75% 24%, 80% 42%, 85% 30%, 90% 48%, 95% 34%, 100% 44%, 100% 100%);
+}
+
+.forest-treeline--mid {
+  bottom: 30%;
+  height: 30%;
+  background: var(--sage);
+  opacity: 0.7;
+  clip-path: polygon(0% 100%, 0% 40%, 4% 22%, 8% 38%, 12% 18%, 16% 34%, 20% 14%, 24% 32%, 28% 42%, 32% 22%, 36% 38%, 40% 16%, 44% 34%, 48% 22%, 52% 40%, 56% 18%, 60% 36%, 64% 24%, 68% 42%, 72% 16%, 76% 34%, 80% 22%, 84% 38%, 88% 18%, 92% 34%, 96% 26%, 100% 38%, 100% 100%);
+}
+
+.forest-ground {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 36%;
+  background: linear-gradient(180deg, #7A8D5A 0%, #697C49 100%);
+}
+
+.forest-path {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18%;
+  height: 100%;
+  background: linear-gradient(180deg, #B8A080 0%, #C8B898 100%);
+  clip-path: polygon(30% 0%, 70% 0%, 90% 100%, 10% 100%);
+  opacity: 0.5;
+}
+
+.forest-log {
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 22px;
+  background: #5C4433;
+  border-radius: 11px;
+  border: 2.5px solid var(--ink);
+  z-index: 2;
+}
+
+.forest-log::before {
+  content: '';
+  position: absolute;
+  left: 3px; top: 4px;
+  width: 12px; height: 12px;
+  border: 2px solid rgba(42,31,20,0.3);
+  border-radius: 50%;
+}
+
+/* Light rays in forest */
+.forest-ray {
+  position: absolute;
+  width: 60px;
+  height: 200px;
+  background: linear-gradient(180deg, rgba(255,232,160,0.12) 0%, transparent 100%);
+  transform-origin: top center;
+  z-index: 1;
+  animation: rayPulse 6s ease-in-out infinite;
+}
+
+@keyframes rayPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Fireflies */
+.forest-firefly {
+  position: absolute;
+  width: 4px; height: 4px;
+  background: #FFE8A0;
+  border-radius: 50%;
+  box-shadow: 0 0 8px 4px rgba(255,232,160,0.5);
+  animation: ff-drift var(--dur) ease-in-out infinite;
+  animation-delay: var(--delay);
+  z-index: 3;
+}
+
+@keyframes ff-drift {
+  0%   { opacity: 0.2; transform: translate(0, 0); }
+  25%  { opacity: 0.9; transform: translate(10px, -16px); }
+  50%  { opacity: 0.5; transform: translate(-8px, -24px); }
+  75%  { opacity: 1;   transform: translate(14px, -10px); }
+  100% { opacity: 0.2; transform: translate(0, 0); }
+}
+
+/* ═══════ CHAT PANEL ═══════ */
+.chat-panel {
+  position: absolute;
+  right: 40px;
+  bottom: 60px;
+  width: 360px;
+  height: 440px;
+  background: var(--cream);
+  border: 1px solid var(--amber-light);
+  border-top: 3px solid #F5A9B8;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(42,31,20,0.3);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  transition: opacity 0.7s, filter 0.7s;
+}
+
+.chat-panel.dimmed {
+  opacity: 0.2;
+  filter: blur(3px);
+}
+
+.chat-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--amber-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FDF6EC;
+  border-radius: 12px 12px 0 0;
+}
+
+.chat-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #5BCEFA;
+}
+
+.chat-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--warm-brown);
+}
+
+.chat-status {
+  font-size: 11px;
+  color: #8B7355;
+  margin-left: auto;
+  font-style: italic;
+  transition: all 0.3s;
+}
+
+.chat-msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-msg {
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 85%;
+  font-size: 13px;
+  line-height: 1.6;
+  word-wrap: break-word;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: msgIn 0.35s ease forwards;
+}
+
+.chat-msg.user {
+  background: var(--amber);
+  color: var(--cream);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-msg.assistant {
+  background: var(--parchment);
+  color: var(--warm-brown);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+@keyframes msgIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--amber-light);
+  background: #FDF6EC;
+  border-radius: 0 0 12px 12px;
+}
+
+.chat-input textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--amber-light);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: var(--cream);
+  color: var(--warm-brown);
+}
+
+.chat-input textarea:focus {
+  border-color: var(--amber);
+}
+
+/* ═══════ ARCHIE CHARACTER ═══════ */
+.archie {
+  position: absolute;
+  width: 80px;
+  height: 135px;
+  z-index: 20;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+.archie.at-chat {
+  right: 380px;
+  bottom: 120px;
+}
+
+.archie.at-log {
+  left: 50%;
+  bottom: 200px;
+  transform: translateX(-50%);
+}
+
+.archie.walking-right {
+  right: -100px;
+  bottom: 120px;
+}
+
+/* ═══════ CHARACTER SHADOW (grounding) ═══════ */
+.a-shadow {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 8px;
+  background: radial-gradient(ellipse, rgba(42,31,20,0.35) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+  transition: all 0.3s;
+}
+
+.archie.walking .a-shadow {
+  animation: shadowBob 0.5s ease-in-out infinite;
+}
+
+@keyframes shadowBob {
+  0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.7; }
+  50% { transform: translateX(-50%) scaleX(0.85); opacity: 0.9; }
+}
+
+.archie.sleeping .a-shadow {
+  width: 44px;
+}
+
+/* ═══════ CHARACTER BODY WRAPPER (for body bob) ═══════ */
+.a-body-wrap {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.3s;
+}
+
+.archie.walking .a-body-wrap {
+  animation: bodyBob 0.5s ease-in-out infinite;
+}
+
+@keyframes bodyBob {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-3px); }
+  75% { transform: translateY(-3px); }
+}
+
+/* Anticipation crouch before walk */
+.archie.anticipating .a-body-wrap {
+  transform: translateY(4px) scaleY(0.95);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Squash on landing */
+.archie.landing .a-body-wrap {
+  transform: translateY(3px) scaleX(1.08) scaleY(0.92);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Settle after landing */
+.archie.settling .a-body-wrap {
+  transform: translateY(0) scaleX(1) scaleY(1);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Lean for throw */
+.archie.winding-up .a-body-wrap {
+  transform: rotate(-8deg) translateX(-4px);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.archie.throwing .a-body-wrap {
+  transform: rotate(12deg) translateX(6px);
+  transition: transform 0.15s cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Head */
+.a-head {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 36px;
+  background: var(--skin);
+  border-radius: 46% 46% 42% 42%;
+  border: 2px solid var(--ink);
+  z-index: 2;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Head bob during walk */
+.archie.walking .a-head {
+  animation: headBobWalk 0.5s ease-in-out infinite;
+}
+
+@keyframes headBobWalk {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+  25% { transform: translateX(-50%) translateY(-1px) rotate(-1.5deg); }
+  75% { transform: translateX(-50%) translateY(-1px) rotate(1.5deg); }
+}
+
+/* Head turn before walking */
+.archie.looking-right .a-head {
+  transform: translateX(-46%) scaleX(0.94);
+}
+
+.archie.looking-left .a-head {
+  transform: translateX(-54%) scaleX(0.94);
+}
+
+/* Hair */
+.a-hair::before {
+  content: '';
+  position: absolute;
+  width: 10px; height: 9px;
+  background: var(--warm-brown);
+  border-radius: 55% 45% 50% 50%;
+  top: -5px; left: 3px;
+  transform: rotate(-18deg);
+  border: 1.5px solid var(--ink);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.a-hair::after {
+  content: '';
+  position: absolute;
+  width: 11px; height: 10px;
+  background: var(--warm-brown);
+  border-radius: 45% 55% 50% 50%;
+  top: -6px; right: 2px;
+  transform: rotate(14deg);
+  border: 1.5px solid var(--ink);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.a-tuft {
+  position: absolute;
+  width: 9px; height: 8px;
+  background: var(--warm-brown);
+  border-radius: 50% 50% 40% 40%;
+  top: -7px; left: 50%;
+  transform: translateX(-50%) rotate(-4deg);
+  border: 1.5px solid var(--ink);
+  z-index: 3;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Hair bounce on sudden movements */
+.archie.hair-bounce .a-hair::before {
+  transform: rotate(-24deg) translateY(-2px);
+}
+.archie.hair-bounce .a-hair::after {
+  transform: rotate(20deg) translateY(-2px);
+}
+.archie.hair-bounce .a-tuft {
+  transform: translateX(-50%) rotate(-10deg) translateY(-2px);
+}
+
+/* Glasses */
+.a-glasses {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px; height: 12px;
+  z-index: 4;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.a-glasses::before,
+.a-glasses::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  top: 0;
+}
+.a-glasses::before { left: 0; }
+.a-glasses::after { right: 0; }
+
+/* Glasses bounce on sudden stop */
+.archie.glasses-bounce .a-glasses {
+  animation: glassesBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes glassesBounce {
+  0% { transform: translateX(-50%) translateY(0); }
+  30% { transform: translateX(-50%) translateY(3px) rotate(-2deg); }
+  60% { transform: translateX(-50%) translateY(-1px) rotate(1deg); }
+  100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+}
+
+.a-bridge {
+  position: absolute;
+  top: 15px; left: 50%;
+  transform: translateX(-50%);
+  width: 4px; height: 1.5px;
+  background: var(--ink);
+  z-index: 4;
+}
+
+/* Eyes */
+.a-eyes {
+  position: absolute;
+  top: 15px; left: 50%;
+  transform: translateX(-50%);
+  width: 20px; height: 3px;
+  z-index: 4;
+}
+.a-eyes::before,
+.a-eyes::after {
+  content: '';
+  position: absolute;
+  width: 2.5px; height: 3px;
+  background: var(--ink);
+  border-radius: 50%;
+  top: 0;
+  animation: blink 4.5s ease-in-out infinite;
+}
+.a-eyes::before { left: 3px; }
+.a-eyes::after { right: 3px; }
+
+/* Wide eyes (surprise) */
+.archie.wide-eyed .a-eyes::before,
+.archie.wide-eyed .a-eyes::after {
+  animation: none;
+  width: 3.5px;
+  height: 4px;
+}
+
+/* Sleepy eyes (half-closed) */
+.archie.sleepy-eyes .a-eyes::before,
+.archie.sleepy-eyes .a-eyes::after {
+  animation: none;
+  height: 2px;
+  transform: scaleY(0.6);
+}
+
+/* Sleeping eyes */
+.archie.sleeping .a-eyes::before,
+.archie.sleeping .a-eyes::after {
+  animation: none;
+  height: 1.5px;
+  border-radius: 0;
+  transform: scaleY(0.3);
+}
+
+/* Eyebrows (added for expressiveness) */
+.a-brows {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 4px;
+  z-index: 5;
+}
+
+.a-brows::before,
+.a-brows::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.a-brows::before { left: 2px; transform: rotate(-5deg); }
+.a-brows::after { right: 2px; transform: rotate(5deg); }
+
+/* Raised brows (surprise/eureka) */
+.archie.brows-raised .a-brows::before {
+  transform: rotate(-10deg) translateY(-3px);
+}
+.archie.brows-raised .a-brows::after {
+  transform: rotate(10deg) translateY(-3px);
+}
+
+/* Worried brows */
+.archie.brows-worried .a-brows::before {
+  transform: rotate(8deg) translateY(-1px);
+}
+.archie.brows-worried .a-brows::after {
+  transform: rotate(-8deg) translateY(-1px);
+}
+
+/* Mouth */
+.a-mouth {
+  position: absolute;
+  bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  width: 5px; height: 2.5px;
+  border-bottom: 1.5px solid var(--ink);
+  border-radius: 0 0 50% 50%;
+  z-index: 4;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Expressions */
+.archie.excited .a-mouth {
+  width: 7px; height: 4px;
+  border-bottom-width: 2px;
+}
+
+.archie.grin .a-mouth {
+  width: 8px; height: 3px;
+  border-bottom-width: 2px;
+}
+
+.archie.worried .a-mouth {
+  width: 5px; height: 1px;
+  border-bottom: 1.5px solid var(--ink);
+  border-radius: 0;
+}
+
+/* Yawn */
+.archie.yawning .a-mouth {
+  width: 6px; height: 6px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  background: rgba(42,31,20,0.15);
+  border-bottom-width: 1.5px;
+}
+
+/* Collar */
+.a-collar {
+  position: absolute;
+  top: 30px; left: 50%;
+  transform: translateX(-50%);
+  width: 24px; height: 7px;
+  background: var(--teal);
+  border: 1.5px solid var(--ink);
+  border-radius: 2px 2px 0 0;
+  z-index: 2;
+}
+
+/* Coat */
+.a-coat {
+  position: absolute;
+  top: 33px; left: 50%;
+  transform: translateX(-50%);
+  width: 44px; height: 58px;
+  background: var(--amber);
+  border: 2px solid var(--ink);
+  border-radius: 3px 3px 4px 4px;
+  clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Coat flap (secondary motion on walk) */
+.a-coat-flap {
+  position: absolute;
+  bottom: 0;
+  right: -1px;
+  width: 10px;
+  height: 18px;
+  background: var(--amber-dark);
+  border: 1.5px solid var(--ink);
+  border-radius: 0 0 3px 0;
+  transform-origin: top right;
+  transition: transform 0.3s;
+  z-index: 1;
+}
+
+.archie.walking .a-coat-flap {
+  animation: coatFlap 0.5s ease-in-out infinite;
+}
+
+@keyframes coatFlap {
+  0%, 100% { transform: rotate(0deg) skewX(0deg); }
+  25% { transform: rotate(4deg) skewX(-3deg); }
+  75% { transform: rotate(-3deg) skewX(2deg); }
+}
+
+/* Arms */
+.a-arm {
+  position: absolute;
+  width: 7px;
+  background: var(--amber);
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  top: 38px;
+  transform-origin: top center;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.a-arm::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 50%;
+  transform: translateX(-50%);
+  width: 7px; height: 7px;
+  background: var(--skin);
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+}
+.a-arm--l { left: 12px; height: 28px; transform: rotate(6deg); }
+.a-arm--r { right: 12px; height: 25px; transform: rotate(-4deg); }
+
+/* Arm swing during walk */
+.archie.walking .a-arm--l {
+  animation: armSwingL 0.5s ease-in-out infinite;
+}
+.archie.walking .a-arm--r {
+  animation: armSwingR 0.5s ease-in-out infinite;
+}
+
+@keyframes armSwingL {
+  0%, 100% { transform: rotate(12deg); }
+  50% { transform: rotate(-8deg); }
+}
+
+@keyframes armSwingR {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+/* Glasses adjust: arm goes up */
+.archie.adjusting-glasses .a-arm--r {
+  transform: rotate(-40deg) translateY(-8px);
+}
+
+/* Throw wind-up arm */
+.archie.winding-up .a-arm--r {
+  transform: rotate(20deg) translateY(-4px);
+}
+
+/* Throw release arm */
+.archie.throwing .a-arm--r {
+  transform: rotate(-60deg) translateY(-10px);
+}
+
+/* Wave arm */
+.archie.waving .a-arm--r {
+  animation: wave 0.4s ease-in-out 2;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(-50deg) translateY(-8px); }
+  50% { transform: rotate(-30deg) translateY(-10px); }
+}
+
+/* Legs */
+.a-legs {
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 26px; height: 35px;
+}
+.a-leg {
+  position: absolute;
+  bottom: 6px;
+  width: 8px; height: 22px;
+  background: var(--warm-brown);
+  border: 1.5px solid var(--ink);
+  border-radius: 3px 3px 0 0;
+  transform-origin: top center;
+}
+.a-leg--l { left: 1px; }
+.a-leg--r { right: 1px; }
+.a-leg::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: -2px;
+  width: 12px; height: 5px;
+  background: #8B5E3C;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px 4px 2px 2px;
+}
+
+/* Walk cycle — smooth sinusoidal instead of stepped */
+.archie.walking .a-leg--l {
+  animation: walkL 0.5s ease-in-out infinite;
+}
+.archie.walking .a-leg--r {
+  animation: walkR 0.5s ease-in-out infinite;
+}
+
+@keyframes walkL {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(14deg); }
+}
+@keyframes walkR {
+  0%, 100% { transform: rotate(14deg); }
+  50% { transform: rotate(-14deg); }
+}
+
+/* Dangling legs (for crawler hanging) */
+.archie.dangling .a-leg--l {
+  animation: dangle1 1.2s ease-in-out infinite;
+}
+.archie.dangling .a-leg--r {
+  animation: dangle2 1.2s ease-in-out infinite 0.3s;
+}
+
+@keyframes dangle1 {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(8deg); }
+}
+@keyframes dangle2 {
+  0%, 100% { transform: rotate(4deg); }
+  50% { transform: rotate(-6deg); }
+}
+
+/* Sway and breathe */
+@keyframes sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(0.6deg); }
+}
+@keyframes breathe {
+  0%, 100% { transform: translateX(-50%) scaleY(1); }
+  50% { transform: translateX(-50%) scaleY(1.015); }
+}
+@keyframes blink {
+  0%, 88%, 94%, 100% { transform: scaleY(1); }
+  91% { transform: scaleY(0.1); }
+}
+
+/* ═══════ HEAD NOD (drowsy) ═══════ */
+.archie.drowsy .a-head {
+  animation: headNod 3s ease-in-out infinite;
+}
+
+@keyframes headNod {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  35% { transform: translateX(-50%) rotate(10deg) translateY(3px); }
+  45% { transform: translateX(-50%) rotate(3deg) translateY(1px); }
+  60% { transform: translateX(-50%) rotate(12deg) translateY(4px); }
+  70% { transform: translateX(-50%) rotate(5deg) translateY(1px); }
+}
+
+.archie.sleeping .a-head {
+  transform: translateX(-50%) rotate(12deg) translateY(4px);
+}
+
+.archie.sleeping .a-glasses {
+  transform: translateX(-50%) translateY(3px) rotate(-3deg);
+}
+
+/* Gradual glasses slip for drowsy */
+.archie.drowsy .a-glasses {
+  animation: glassesSlip 3s ease-in-out infinite;
+}
+
+@keyframes glassesSlip {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(2px) rotate(-1.5deg); }
+}
+
+/* ═══════ SNORE PUFF ═══════ */
+.snore-puff {
+  position: absolute;
+  width: 10px;
+  height: 8px;
+  border: 1.5px solid var(--amber-light);
+  border-radius: 50% 50% 50% 20%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.snore-puff.puff {
+  animation: snorePuff 1.8s ease-out forwards;
+}
+
+@keyframes snorePuff {
+  0% { opacity: 0; transform: scale(0.3) translate(0, 0); }
+  15% { opacity: 0.5; }
+  100% { opacity: 0; transform: scale(1.8) translate(12px, -20px); }
+}
+
+/* ═══════ Z PARTICLES ═══════ */
+.zzz {
+  position: absolute;
+  font-family: 'Caveat', cursive;
+  color: var(--amber-light);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 25;
+  font-weight: 700;
+}
+
+.zzz.float {
+  animation: floatZ 2.8s ease-out forwards;
+}
+
+@keyframes floatZ {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+  12% { opacity: 0.9; transform: translate(3px, -8px) scale(0.7) rotate(-5deg); }
+  50% { opacity: 0.7; transform: translate(12px, -30px) scale(1.0) rotate(8deg); }
+  100% { opacity: 0; transform: translate(22px, -65px) scale(1.4) rotate(18deg); }
+}
+
+/* ═══════ PAPER AIRPLANE ═══════ */
+.paper-airplane {
+  position: absolute;
+  width: 40px;
+  height: 20px;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.paper-airplane.visible {
+  opacity: 1;
+}
+
+.paper-airplane .wing-top {
+  position: absolute;
+  width: 0; height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 10px solid var(--cream);
+  filter: drop-shadow(0 -1px 0 var(--ink));
+}
+
+.paper-airplane .wing-bottom {
+  position: absolute;
+  top: 10px;
+  width: 0; height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 8px solid var(--parchment);
+  filter: drop-shadow(0 1px 0 var(--ink));
+}
+
+.paper-airplane .fold-line {
+  position: absolute;
+  top: 9px; left: 0;
+  width: 40px; height: 2px;
+  background: var(--ink);
+}
+
+/* Paper sheet for fold animation */
+.paper-sheet {
+  position: absolute;
+  width: 50px;
+  height: 60px;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: center center;
+}
+
+.paper-sheet.visible {
+  opacity: 1;
+}
+
+.paper-sheet .paper-lines {
+  position: absolute;
+  top: 8px; left: 6px; right: 6px;
+}
+
+.paper-sheet .paper-lines::before,
+.paper-sheet .paper-lines::after {
+  content: '';
+  display: block;
+  height: 1.5px;
+  background: var(--amber);
+  opacity: 0.4;
+  margin-bottom: 5px;
+  border-radius: 1px;
+}
+
+.paper-sheet .paper-lines::after {
+  width: 70%;
+}
+
+/* Scribble line animation */
+.scribble-line {
+  position: absolute;
+  height: 1.5px;
+  background: var(--ink);
+  opacity: 0.4;
+  left: 6px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  border-radius: 1px;
+}
+
+.scribble-line.draw {
+  animation: scribbleDraw 0.3s ease-out forwards;
+}
+
+@keyframes scribbleDraw {
+  to { transform: scaleX(1); }
+}
+
+/* ═══════ FLIGHT TRAIL ═══════ */
+.trail-dot {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: var(--amber);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 28;
+}
+
+.trail-dot.visible {
+  animation: trailFade 0.8s ease-out forwards;
+}
+
+@keyframes trailFade {
+  0% { opacity: 0.7; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(0.2); }
+}
+
+/* ═══════ IMPACT PARTICLES ═══════ */
+.impact-star {
+  position: absolute;
+  pointer-events: none;
+  z-index: 32;
+  opacity: 0;
+}
+
+.impact-star.burst {
+  animation: starBurst 0.5s ease-out forwards;
+}
+
+@keyframes starBurst {
+  0% { opacity: 1; transform: scale(0.3) translate(0, 0); }
+  100% { opacity: 0; transform: scale(1) translate(var(--tx), var(--ty)); }
+}
+
+/* ═══════ UNFURL MESSAGE ═══════ */
+.unfurl-msg {
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.unfurl-msg.open {
+  transform: scaleY(1);
+}
+
+/* ═══════ CONTROLS ═══════ */
+.controls {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 100;
+}
+
+.ctrl-btn {
+  font-family: 'Caveat', cursive;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 10px 24px;
+  border: 2px solid var(--amber);
+  background: rgba(42,36,32,0.9);
+  color: var(--amber);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(8px);
+}
+
+.ctrl-btn:hover {
+  background: var(--amber);
+  color: var(--cream);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(193,127,58,0.3);
+}
+
+.ctrl-btn:active {
+  transform: translateY(0);
+}
+
+.ctrl-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ═══════ STATUS LABEL ═══════ */
+.demo-label {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Caveat', cursive;
+  font-size: 22px;
+  color: var(--amber);
+  z-index: 100;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.demo-label.visible {
+  opacity: 1;
+}
+
+/* ═══════ CRAWLER MODE ═══════ */
+.archie.crawler-mode {
+  width: 50px;
+  height: 80px;
+  transition: none;
+}
+
+.archie.crawler-mode .a-coat {
+  width: 30px;
+  height: 38px;
+}
+
+.archie.crawler-mode .a-head {
+  width: 24px;
+  height: 28px;
+}
+
+.archie.crawler-mode .a-glasses {
+  width: 22px;
+  height: 10px;
+}
+
+.archie.crawler-mode .a-glasses::before,
+.archie.crawler-mode .a-glasses::after {
+  width: 9px; height: 9px;
+}
+
+/* Peek animation */
+.archie.peeking .a-head {
+  animation: peek 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes peek {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  40% { transform: translateX(-50%) translateY(-8px); }
+}
+
+/* Foot tap */
+.archie.tapping .a-leg--r {
+  animation: footTap 0.25s ease-in-out 3;
+}
+
+@keyframes footTap {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-10deg); }
+}
+
+/* ─── EDGE-SPECIFIC LOCOMOTION ─── */
+
+/* Bottom edge: normal walk — reuse existing walk/armSwing/bodyBob/coatFlap keyframes */
+.archie.edge-bottom .a-body-wrap {
+  animation: bodyBob 0.5s ease-in-out infinite;
+}
+.archie.edge-bottom .a-leg--l {
+  animation: walkL 0.5s ease-in-out infinite;
+}
+.archie.edge-bottom .a-leg--r {
+  animation: walkR 0.5s ease-in-out infinite;
+}
+.archie.edge-bottom .a-arm--l {
+  animation: armSwingL 0.5s ease-in-out infinite;
+}
+.archie.edge-bottom .a-arm--r {
+  animation: armSwingR 0.5s ease-in-out infinite;
+}
+.archie.edge-bottom .a-coat-flap {
+  animation: coatFlap 0.5s ease-in-out infinite;
+}
+
+/* Right edge: climbing up — arm-over-arm, effortful */
+.archie.edge-right .a-body-wrap {
+  transform: rotate(-90deg);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: climbBodyPull 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-right .a-arm--l {
+  animation: climbReachUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-right .a-arm--r {
+  animation: climbReachUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s infinite;
+}
+.archie.edge-right .a-leg--l {
+  animation: climbPushL 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-right .a-leg--r {
+  animation: climbPushR 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-right .a-coat-flap {
+  animation: climbCoatDangle 0.8s ease-in-out infinite;
+}
+
+@keyframes climbReachUp {
+  0%   { transform: rotate(-40deg); }
+  30%  { transform: rotate(-70deg); }
+  60%  { transform: rotate(-20deg); }
+  100% { transform: rotate(-40deg); }
+}
+
+@keyframes climbPushL {
+  0%, 100% { transform: rotate(20deg); }
+  50%      { transform: rotate(-15deg); }
+}
+
+@keyframes climbPushR {
+  0%, 100% { transform: rotate(-15deg); }
+  50%      { transform: rotate(20deg); }
+}
+
+@keyframes climbBodyPull {
+  0%, 100% { transform: rotate(-90deg) translateY(0); }
+  35%      { transform: rotate(-90deg) translateY(-3px); }
+  65%      { transform: rotate(-90deg) translateY(1px); }
+}
+
+@keyframes climbCoatDangle {
+  0%, 100% { transform: rotate(8deg) skewX(-2deg); }
+  50%      { transform: rotate(12deg) skewX(2deg); }
+}
+
+/* Top edge: cautious shuffle — hunched, short steps */
+.archie.edge-top .a-body-wrap {
+  transform: scaleY(0.94) translateY(3px);
+  animation: none;
+}
+.archie.edge-top .a-leg--l {
+  animation: shuffleL 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-top .a-leg--r {
+  animation: shuffleR 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-top .a-arm--l {
+  animation: balanceArmL 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-top .a-arm--r {
+  animation: balanceArmR 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+
+@keyframes shuffleL {
+  0%, 100% { transform: rotate(-5deg); }
+  50%      { transform: rotate(5deg); }
+}
+
+@keyframes shuffleR {
+  0%, 100% { transform: rotate(5deg); }
+  50%      { transform: rotate(-5deg); }
+}
+
+@keyframes balanceArmL {
+  0%, 100% { transform: rotate(20deg); }
+  50%      { transform: rotate(35deg); }
+}
+
+@keyframes balanceArmR {
+  0%, 100% { transform: rotate(-20deg); }
+  50%      { transform: rotate(-35deg); }
+}
+
+/* Left edge: climbing down — gravity-assisted, faster than climb up */
+.archie.edge-left .a-body-wrap {
+  transform: rotate(90deg);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: descendBody 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-left .a-arm--l {
+  animation: descendArm 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-left .a-arm--r {
+  animation: descendArm 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s infinite;
+}
+.archie.edge-left .a-leg--l {
+  animation: descendLeg 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+.archie.edge-left .a-leg--r {
+  animation: descendLeg 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s infinite;
+}
+
+@keyframes descendArm {
+  0%   { transform: rotate(-10deg); }
+  40%  { transform: rotate(-45deg); }
+  70%  { transform: rotate(-5deg); }
+  100% { transform: rotate(-10deg); }
+}
+
+@keyframes descendLeg {
+  0%, 100% { transform: rotate(10deg); }
+  50%      { transform: rotate(-20deg); }
+}
+
+@keyframes descendBody {
+  0%, 100% { transform: rotate(90deg) translateY(0); }
+  40%      { transform: rotate(90deg) translateY(2px); }
+  70%      { transform: rotate(90deg) translateY(-1px); }
+}
+
+/* ─── GRAVITY-AWARE SECONDARY MOTION ─── */
+
+/* Right edge: hair and glasses hang left (toward gravity) */
+.archie.edge-right .a-hair::before {
+  transform: rotate(-18deg) translateX(-3px) translateY(2px);
+}
+.archie.edge-right .a-hair::after {
+  transform: rotate(-8deg) translateX(-3px) translateY(2px);
+}
+.archie.edge-right .a-tuft {
+  transform: translateX(-50%) rotate(-20deg) translateX(-2px);
+}
+.archie.edge-right .a-glasses {
+  transform: translateX(-50%) translateX(-1.5px) rotate(-3deg);
+}
+
+/* Top edge: hair hangs down (character upside-down relative to gravity) */
+.archie.edge-top .a-hair::before {
+  transform: rotate(-10deg) translateY(3px);
+}
+.archie.edge-top .a-hair::after {
+  transform: rotate(8deg) translateY(3px);
+}
+.archie.edge-top .a-tuft {
+  transform: translateX(-50%) rotate(0deg) translateY(3px);
+}
+.archie.edge-top .a-glasses {
+  transform: translateX(-50%) translateY(1.5px);
+}
+
+/* Left edge: hair and glasses hang right (toward gravity) */
+.archie.edge-left .a-hair::before {
+  transform: rotate(8deg) translateX(3px) translateY(2px);
+}
+.archie.edge-left .a-hair::after {
+  transform: rotate(18deg) translateX(3px) translateY(2px);
+}
+.archie.edge-left .a-tuft {
+  transform: translateX(-50%) rotate(20deg) translateX(2px);
+}
+.archie.edge-left .a-glasses {
+  transform: translateX(-50%) translateX(1.5px) rotate(3deg);
+}
+
+/* ─── CORNER TRANSITIONS ─── */
+
+.archie.corner-transition .a-body-wrap {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Bottom-right corner: reaching up to grab the right edge */
+.archie.corner-br .a-body-wrap {
+  animation: cornerReachUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes cornerReachUp {
+  0%   { transform: rotate(0deg); }
+  40%  { transform: rotate(-30deg) translateY(-4px); }
+  70%  { transform: rotate(-60deg) translateY(-2px); }
+  100% { transform: rotate(-90deg); }
+}
+
+/* Right-top corner: heaving body over the top edge */
+.archie.corner-rt .a-body-wrap {
+  animation: cornerHeave 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes cornerHeave {
+  0%   { transform: rotate(-90deg); }
+  30%  { transform: rotate(-90deg) translateY(-6px); }
+  60%  { transform: rotate(-45deg) translateY(-3px) scaleY(0.92); }
+  100% { transform: rotate(0deg) scaleY(0.94) translateY(3px); }
+}
+
+/* Top-left corner: peering down before descent */
+.archie.corner-tl .a-body-wrap {
+  animation: cornerPeerDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes cornerPeerDown {
+  0%   { transform: scaleY(0.94) translateY(3px); }
+  40%  { transform: scaleY(0.94) translateY(3px) rotate(15deg); }
+  70%  { transform: rotate(55deg) translateY(2px); }
+  100% { transform: rotate(90deg); }
+}
+
+/* Left-bottom corner: drop and land */
+.archie.corner-lb .a-body-wrap {
+  animation: cornerDrop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes cornerDrop {
+  0%   { transform: rotate(90deg); }
+  50%  { transform: rotate(30deg) translateY(4px); }
+  80%  { transform: rotate(-5deg) translateY(3px) scaleY(0.93); }
+  100% { transform: rotate(0deg) translateY(0) scaleY(1); }
+}
+
+/* ─── SIGNATURE MOMENTS ─── */
+
+/* Near-slip: body drops, scrambles back */
+.archie.near-slip .a-body-wrap {
+  animation: slipDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.archie.near-slip .a-arm--l,
+.archie.near-slip .a-arm--r {
+  animation: slipGrab 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slipDrop {
+  0%   { transform: translateY(0); }
+  25%  { transform: translateY(10px) rotate(8deg); }
+  50%  { transform: translateY(12px) rotate(-4deg); }
+  75%  { transform: translateY(4px) rotate(2deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+@keyframes slipGrab {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(-60deg); }
+  50%  { transform: rotate(-80deg); }
+  80%  { transform: rotate(-30deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Breather: sitting with dangling legs — reuses dangle1/dangle2 */
+.archie.breather .a-body-wrap {
+  transform: translateY(2px);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.archie.breather .a-leg--l {
+  animation: dangle1 1.2s ease-in-out infinite;
+}
+.archie.breather .a-leg--r {
+  animation: dangle2 1.2s ease-in-out infinite;
+}
+.archie.breather .a-arm--l {
+  transform: rotate(4deg);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.archie.breather .a-arm--r {
+  transform: rotate(-4deg);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Wiping brow: arm goes up to forehead */
+.archie.wiping-brow .a-arm--r {
+  animation: wipeBrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes wipeBrow {
+  0%   { transform: rotate(-4deg); }
+  30%  { transform: rotate(-90deg) translateX(2px); }
+  50%  { transform: rotate(-85deg) translateX(4px); }
+  70%  { transform: rotate(-88deg) translateX(0px); }
+  100% { transform: rotate(-4deg); }
+}
+
+/* ═══════ GLINT EFFECT ═══════ */
+.glint {
+  position: absolute;
+  top: 8px;
+  right: 1px;
+  width: 5px; height: 5px;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glint::before, .glint::after {
+  content: '';
+  position: absolute;
+  background: white;
+}
+
+.glint::before {
+  width: 5px; height: 1.5px;
+  top: 2px; left: 0;
+}
+
+.glint::after {
+  width: 1.5px; height: 5px;
+  top: 0; left: 2px;
+}
+
+.glint.flash {
+  animation: glintFlash 0.5s ease-out forwards;
+}
+
+@keyframes glintFlash {
+  0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  25% { opacity: 1; transform: scale(1.4) rotate(15deg); }
+  60% { opacity: 0.7; transform: scale(0.9) rotate(-5deg); }
+  100% { opacity: 0; transform: scale(0.7) rotate(0deg); }
+}
+
+/* ═══════ BACKGROUND ═══════ */
+.bg-title {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  z-index: 2;
+}
+
+.bg-title h1 {
+  font-family: 'Caveat', cursive;
+  font-size: 28px;
+  color: rgba(255,248,240,0.15);
+  font-weight: 700;
+}
+
+.bg-title p {
+  font-size: 12px;
+  color: rgba(255,248,240,0.08);
+  font-style: italic;
+}
+
+/* ═══════ DUST MOTES (ambient) ═══════ */
+.dust-mote {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(255,248,240,0.15);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: dustFloat var(--dur) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes dustFloat {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  50% { transform: translate(var(--dx), var(--dy)); opacity: 0.3; }
+}
+</style>
+</head>
+<body>
+
+<div class="demo-label" id="demoLabel">Click a scenario below to see Archie in action</div>
+
+<div class="bg-title">
+  <h1>Archie Animation Lab</h1>
+  <p>interactive prototype</p>
+</div>
+
+<div class="stage" id="stage">
+  <!-- Forest scene -->
+  <div class="forest-scene" id="forestScene">
+    <div class="forest-sky"></div>
+    <div class="forest-treeline forest-treeline--far"></div>
+    <div class="forest-treeline forest-treeline--mid"></div>
+    <div class="forest-ground"><div class="forest-path"></div></div>
+    <div class="forest-log"></div>
+    <div class="forest-ray" style="left:22%;top:5%;transform:rotate(6deg)"></div>
+    <div class="forest-ray" style="left:58%;top:0%;transform:rotate(-4deg);animation-delay:2s"></div>
+    <div class="forest-ray" style="left:75%;top:3%;transform:rotate(3deg);animation-delay:4s;width:45px"></div>
+    <div class="forest-firefly" style="left:18%;top:28%;--dur:4s;--delay:0s"></div>
+    <div class="forest-firefly" style="left:65%;top:22%;--dur:5s;--delay:1s"></div>
+    <div class="forest-firefly" style="left:40%;top:32%;--dur:3.5s;--delay:0.5s"></div>
+    <div class="forest-firefly" style="left:80%;top:35%;--dur:4.5s;--delay:1.8s"></div>
+    <div class="forest-firefly" style="left:28%;top:20%;--dur:5.5s;--delay:0.3s"></div>
+    <div class="forest-firefly" style="left:52%;top:38%;--dur:4.2s;--delay:2.5s"></div>
+  </div>
+
+  <!-- Chat panel -->
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <span class="chat-dot"></span>
+      <span class="chat-title">Archie</span>
+      <span class="chat-status" id="chatStatus">connected</span>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="chat-msg assistant" style="animation-delay:0s">Hey. I'm Archie. Ask me anything about the architecture.</div>
+    </div>
+    <div class="chat-input">
+      <textarea rows="1" placeholder="Ask Archie..." id="chatInput"></textarea>
+    </div>
+  </div>
+
+  <!-- Archie character -->
+  <div class="archie at-chat" id="archie">
+    <div class="a-shadow"></div>
+    <div class="a-body-wrap">
+      <div class="a-head">
+        <div class="a-hair">
+          <div class="a-tuft"></div>
+        </div>
+        <div class="a-brows"></div>
+        <div class="a-glasses">
+          <div class="glint" id="glint"></div>
+        </div>
+        <div class="a-bridge"></div>
+        <div class="a-eyes"></div>
+        <div class="a-mouth"></div>
+      </div>
+      <div class="a-collar"></div>
+      <div class="a-coat">
+        <div class="a-coat-flap"></div>
+      </div>
+      <div class="a-arm a-arm--l"></div>
+      <div class="a-arm a-arm--r"></div>
+      <div class="a-legs">
+        <div class="a-leg a-leg--l"></div>
+        <div class="a-leg a-leg--r"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paper airplane -->
+  <div class="paper-airplane" id="airplane">
+    <div class="wing-top"></div>
+    <div class="wing-bottom"></div>
+    <div class="fold-line"></div>
+  </div>
+
+  <!-- Paper sheet -->
+  <div class="paper-sheet" id="paperSheet">
+    <div class="paper-lines"></div>
+  </div>
+
+  <!-- Ambient dust motes -->
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="ctrl-btn" id="btnJourney" onclick="startJourney()">Paper Airplane</button>
+  <button class="ctrl-btn" id="btnCrawler" onclick="startCrawler()">Impatient Crawler</button>
+  <button class="ctrl-btn" id="btnSleep" onclick="startSleep()">Idle Dreamer</button>
+  <button class="ctrl-btn" id="btnReset" onclick="resetAll()" style="border-color:#8B7355;color:#8B7355">Reset</button>
+</div>
+
+<script>
+const archie = document.getElementById('archie');
+const chatPanel = document.getElementById('chatPanel');
+const chatMsgs = document.getElementById('chatMsgs');
+const chatStatus = document.getElementById('chatStatus');
+const forestScene = document.getElementById('forestScene');
+const airplane = document.getElementById('airplane');
+const paperSheet = document.getElementById('paperSheet');
+const glint = document.getElementById('glint');
+const demoLabel = document.getElementById('demoLabel');
+const stage = document.getElementById('stage');
+
+let animating = false;
+let zzzInterval = null;
+let snoreInterval = null;
+let crawlerRAF = null;
+
+// Add ambient dust motes
+(function addDust() {
+  for (let i = 0; i < 8; i++) {
+    const mote = document.createElement('div');
+    mote.className = 'dust-mote';
+    mote.style.cssText = `
+      left: ${10 + Math.random() * 30}%;
+      top: ${20 + Math.random() * 60}%;
+      --dur: ${5 + Math.random() * 6}s;
+      --delay: ${Math.random() * 5}s;
+      --dx: ${-15 + Math.random() * 30}px;
+      --dy: ${-20 + Math.random() * 10}px;
+    `;
+    stage.appendChild(mote);
+  }
+})();
+
+function showLabel(text) {
+  demoLabel.textContent = text;
+  demoLabel.classList.add('visible');
+}
+function hideLabel() {
+  demoLabel.classList.remove('visible');
+}
+
+function disableButtons() {
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.disabled = true);
+  document.getElementById('btnReset').disabled = false;
+}
+
+function enableButtons() {
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.disabled = false);
+}
+
+function addMsg(text, role, delay = 0) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = `chat-msg ${role}`;
+      div.textContent = text;
+      chatMsgs.appendChild(div);
+      chatMsgs.scrollTop = chatMsgs.scrollHeight;
+      resolve();
+    }, delay);
+  });
+}
+
+function setStatus(text) {
+  chatStatus.textContent = text;
+}
+
+// ═══════ Animation helpers with secondary motion ═══════
+
+function adjustGlasses(duration = 400) {
+  archie.classList.add('adjusting-glasses');
+  setTimeout(() => archie.classList.remove('adjusting-glasses'), duration);
+}
+
+function flashGlint() {
+  glint.classList.remove('flash');
+  void glint.offsetWidth;
+  glint.classList.add('flash');
+}
+
+function hairBounce(duration = 350) {
+  archie.classList.add('hair-bounce');
+  setTimeout(() => archie.classList.remove('hair-bounce'), duration);
+}
+
+function glassesBounce() {
+  archie.classList.add('glasses-bounce');
+  setTimeout(() => archie.classList.remove('glasses-bounce'), 400);
+}
+
+function squashStretch(type, duration = 200) {
+  archie.classList.add(type);
+  setTimeout(() => archie.classList.remove(type), duration);
+}
+
+// Expression system: snap, don't tween (the Newgrounds snap)
+function setExpression(expr, duration = 0) {
+  const exprs = ['excited', 'grin', 'worried', 'yawning', 'wide-eyed',
+                 'brows-raised', 'brows-worried', 'sleepy-eyes'];
+  exprs.forEach(e => archie.classList.remove(e));
+  if (expr) {
+    archie.classList.add(expr);
+    if (duration > 0) {
+      setTimeout(() => archie.classList.remove(expr), duration);
+    }
+  }
+}
+
+function spawnImpactStars(x, y, count = 5) {
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement('div');
+    star.className = 'impact-star';
+    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
+    const dist = 15 + Math.random() * 20;
+    star.style.cssText = `
+      left: ${x}px; top: ${y}px;
+      width: 4px; height: 4px;
+      background: var(--gold);
+      border-radius: 50%;
+      --tx: ${Math.cos(angle) * dist}px;
+      --ty: ${Math.sin(angle) * dist}px;
+    `;
+    stage.appendChild(star);
+    requestAnimationFrame(() => star.classList.add('burst'));
+    setTimeout(() => star.remove(), 500);
+  }
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+
+// ═══════════════════════════════
+// SCENARIO 1: THE JOURNEY RESPONSE
+// ═══════════════════════════════
+async function startJourney() {
+  if (animating) return;
+  animating = true;
+  disableButtons();
+  showLabel('The Journey Response');
+
+  // User sends message
+  await addMsg("What's the best way to handle auth in this microservice?", 'user');
+  await sleep(500);
+
+  // Archie reads, raises brows
+  setExpression('brows-raised');
+  setStatus('hmm, interesting...');
+  await sleep(500);
+
+  // Nods understanding
+  setExpression('');
+  await sleep(300);
+
+  // Excitement builds
+  setExpression('excited');
+  setExpression('brows-raised');
+  setStatus('let me dig into that...');
+  await sleep(600);
+
+  // The signature glasses adjust (the tell)
+  adjustGlasses();
+  flashGlint();
+  await sleep(500);
+
+  // Head turn — anticipation beat
+  setExpression('');
+  archie.classList.add('looking-right');
+  showLabel('Archie turns to leave...');
+  await sleep(400);
+
+  // Anticipation crouch before walk
+  squashStretch('anticipating', 200);
+  await sleep(200);
+
+  // Walk off
+  archie.classList.remove('looking-right');
+  archie.classList.add('walking');
+  archie.classList.remove('at-chat');
+  archie.classList.add('walking-right');
+  hairBounce();
+  showLabel('Archie walks off to think...');
+  await sleep(900);
+
+  // Scene transition — iris wipe
+  chatPanel.classList.add('dimmed');
+  forestScene.classList.add('active');
+  await sleep(400);
+
+  // Archie arrives at log
+  archie.classList.remove('walking-right');
+  archie.classList.add('at-log');
+  await sleep(500);
+
+  // Stop walking — landing with squash & settle
+  archie.classList.remove('walking');
+  squashStretch('landing', 120);
+  glassesBounce();
+  hairBounce();
+  await sleep(150);
+  squashStretch('settling', 300);
+
+  showLabel('Sitting on the log, thinking...');
+  setStatus('pulling threads...');
+  await sleep(1200);
+
+  // Thinking — head tilts, expression changes
+  archie.classList.add('looking-left');
+  setExpression('brows-worried');
+  await sleep(800);
+  archie.classList.remove('looking-left');
+  setExpression('');
+  await sleep(600);
+
+  setStatus('I see something...');
+  adjustGlasses(300);
+  await sleep(1000);
+
+  // Eureka! — big expression snap + hair bounce + glint
+  showLabel('Eureka!');
+  setExpression('excited');
+  setExpression('brows-raised');
+  archie.classList.add('wide-eyed');
+  flashGlint();
+  hairBounce();
+  setStatus('okay, got it...');
+
+  const archieRect = archie.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+  spawnImpactStars(
+    archieRect.left - stageRect.left + 40,
+    archieRect.top - stageRect.top + 5,
+    6
+  );
+  await sleep(900);
+
+  archie.classList.remove('wide-eyed');
+  setExpression('grin');
+
+  // Paper appears
+  const paperX = archieRect.left - stageRect.left + 30;
+  const paperY = archieRect.top - stageRect.top - 10;
+
+  paperSheet.style.left = paperX + 'px';
+  paperSheet.style.top = paperY + 'px';
+  paperSheet.classList.add('visible');
+  showLabel('Writing the response...');
+  await sleep(400);
+
+  // Scribble writing animation
+  for (let i = 0; i < 4; i++) {
+    const line = document.createElement('div');
+    line.className = 'scribble-line';
+    line.style.top = (20 + i * 8) + 'px';
+    line.style.width = (20 + Math.random() * 18) + 'px';
+    paperSheet.appendChild(line);
+    await sleep(150);
+    line.classList.add('draw');
+  }
+  await sleep(400);
+
+  // Fold animation — more intermediate stages
+  showLabel('Folding the paper airplane...');
+  setExpression('');
+
+  paperSheet.style.transition = 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+
+  // Fold 1: slight crease
+  paperSheet.style.transform = 'perspective(200px) rotateX(15deg) scaleY(0.9)';
+  await sleep(280);
+
+  // Fold 2: proper fold
+  paperSheet.style.transform = 'perspective(200px) rotateX(35deg) scaleY(0.65) scaleX(0.9)';
+  await sleep(260);
+
+  // Fold 3: narrow
+  paperSheet.style.transform = 'perspective(200px) rotateX(50deg) scaleY(0.35) scaleX(0.75)';
+  await sleep(240);
+
+  // Fold 4: airplane shape
+  paperSheet.style.transform = 'perspective(200px) rotateX(60deg) scaleY(0.18) scaleX(0.6)';
+  await sleep(220);
+
+  // Swap to airplane
+  paperSheet.classList.remove('visible');
+  paperSheet.querySelectorAll('.scribble-line').forEach(l => l.remove());
+  paperSheet.style.transform = '';
+  paperSheet.style.transition = '';
+
+  airplane.style.left = paperX + 'px';
+  airplane.style.top = paperY + 'px';
+  airplane.classList.add('visible');
+  await sleep(200);
+
+  // Wind-up for throw
+  showLabel('Winding up...');
+  archie.classList.add('winding-up');
+  setExpression('brows-worried');
+  await sleep(350);
+
+  // THROW!
+  showLabel('Throwing!');
+  archie.classList.remove('winding-up');
+  archie.classList.add('throwing');
+  setExpression('excited');
+  hairBounce();
+  await sleep(200);
+  archie.classList.remove('throwing');
+
+  // Fly the airplane
+  const chatRect = chatPanel.getBoundingClientRect();
+  const targetX = chatRect.left - stageRect.left + 100;
+  const targetY = chatRect.top - stageRect.top + 80;
+  const startX = paperX;
+  const startY = paperY;
+
+  showLabel('The paper airplane flies back...');
+  setExpression('');
+
+  const duration = 1400;
+  const startTime = performance.now();
+  let lastTrailTime = 0;
+
+  function flyFrame(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+
+    // Eased t for more natural motion
+    const easedT = t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    const cx1 = startX + 100, cy1 = startY - 160;
+    const cx2 = targetX - 80, cy2 = targetY - 120;
+
+    const u = 1 - easedT;
+    const x = u*u*u*startX + 3*u*u*easedT*cx1 + 3*u*easedT*easedT*cx2 + easedT*easedT*easedT*targetX;
+    const y = u*u*u*startY + 3*u*u*easedT*cy1 + 3*u*easedT*easedT*cy2 + easedT*easedT*easedT*targetY;
+
+    // Tangent for rotation
+    const dt = 0.02;
+    const t2 = Math.min(easedT + dt, 1);
+    const u2 = 1 - t2;
+    const nx = u2*u2*u2*startX + 3*u2*u2*t2*cx1 + 3*u2*t2*t2*cx2 + t2*t2*t2*targetX;
+    const ny = u2*u2*u2*startY + 3*u2*u2*t2*cy1 + 3*u2*t2*t2*cy2 + t2*t2*t2*targetY;
+    const angle = Math.atan2(ny - y, nx - x) * 180 / Math.PI;
+
+    // Wing wobble — diminishes as it approaches
+    const wobble = Math.sin(t * Math.PI * 8) * (3 * (1 - t));
+
+    // Banking on turns
+    const bankAngle = Math.sin(t * Math.PI * 4) * 12 * (1 - t);
+
+    airplane.style.left = x + 'px';
+    airplane.style.top = (y + wobble) + 'px';
+    airplane.style.transform = `rotate(${angle}deg) scaleY(${1 + Math.sin(bankAngle * 0.05)}) scale(${0.7 + t * 0.5})`;
+
+    // Trail dots with size variation
+    if (now - lastTrailTime > 60) {
+      lastTrailTime = now;
+      const dot = document.createElement('div');
+      dot.className = 'trail-dot visible';
+      dot.style.left = (x + 18) + 'px';
+      dot.style.top = (y + wobble + 8) + 'px';
+      dot.style.width = dot.style.height = (2 + Math.random() * 2) + 'px';
+      stage.appendChild(dot);
+      setTimeout(() => dot.remove(), 800);
+    }
+
+    if (t < 1) {
+      requestAnimationFrame(flyFrame);
+    } else {
+      landAirplane(x, y);
+    }
+  }
+
+  requestAnimationFrame(flyFrame);
+
+  async function landAirplane(lx, ly) {
+    // Impact particles
+    spawnImpactStars(lx + 20, ly + 10, 4);
+
+    // Squash on landing
+    showLabel('Landing!');
+    airplane.style.transition = 'transform 0.1s cubic-bezier(0.4, 0, 1, 1)';
+    airplane.style.transform = 'rotate(0deg) scaleY(0.5) scaleX(1.4)';
+    await sleep(100);
+
+    // Stretch bounce
+    airplane.style.transition = 'transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    airplane.style.transform = 'rotate(0deg) scaleY(1.15) scaleX(0.88)';
+    await sleep(130);
+
+    // Second smaller bounce
+    airplane.style.transform = 'rotate(-2deg) scaleY(0.95) scaleX(1.05)';
+    await sleep(100);
+
+    // Settle
+    airplane.style.transition = 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    airplane.style.transform = 'rotate(0deg) scaleY(1) scaleX(1)';
+    await sleep(300);
+
+    // Scene closes
+    forestScene.classList.remove('active');
+    chatPanel.classList.remove('dimmed');
+    airplane.classList.remove('visible');
+    airplane.style.transition = '';
+    airplane.style.transform = '';
+
+    // Archie returns with a little hop
+    archie.classList.remove('at-log');
+    archie.classList.add('at-chat');
+    await sleep(300);
+
+    squashStretch('landing', 120);
+    glassesBounce();
+    await sleep(150);
+    squashStretch('settling', 300);
+
+    // Wave
+    archie.classList.add('waving');
+    setExpression('grin');
+    await sleep(900);
+    archie.classList.remove('waving');
+
+    // Unfurl message
+    showLabel('The response unfurls...');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg assistant unfurl-msg';
+    msg.textContent = "For microservices auth, I'd go with JWT tokens validated at the API gateway. Each service trusts tokens signed by your auth service \u2014 no per-service session state. The gateway handles token refresh. Keep it stateless at the service boundary.";
+    chatMsgs.appendChild(msg);
+    chatMsgs.scrollTop = chatMsgs.scrollHeight;
+
+    await sleep(50);
+    msg.classList.add('open');
+
+    setExpression('');
+    setStatus('connected');
+    adjustGlasses();
+    await sleep(1500);
+    showLabel('Done! The paper airplane delivered the response.');
+    animating = false;
+    enableButtons();
+  }
+}
+
+
+// ═══════════════════════════════
+// SCENARIO 2: THE IMPATIENT CRAWLER
+// ═══════════════════════════════
+async function startCrawler() {
+  if (animating) return;
+  animating = true;
+  disableButtons();
+  showLabel('The Impatient Crawler \u2014 type in the box to see Archie react');
+
+  const panelRect = chatPanel.getBoundingClientRect();
+  const stageRect = stage.getBoundingClientRect();
+
+  const pLeft = panelRect.left - stageRect.left;
+  const pTop = panelRect.top - stageRect.top;
+  const pWidth = panelRect.width;
+  const pHeight = panelRect.height;
+
+  archie.classList.remove('at-chat');
+  archie.style.transition = 'none';
+
+  let t = 0;
+  let speed = 0.002;
+  let targetSpeed = 0.002;
+  let lastTyping = 0;
+  let typeCount = 0;
+  let lastPeekTime = 0;
+  let lastTapTime = 0;
+
+  document.getElementById('chatInput').focus();
+
+  function updateCrawlerPos() {
+    const pos = t % 4;
+    let x, y, rot;
+
+    if (pos < 1) {
+      x = pLeft + pos * pWidth;
+      y = pTop + pHeight - 10;
+      rot = 0;
+    } else if (pos < 2) {
+      const p = pos - 1;
+      x = pLeft + pWidth - 5;
+      y = pTop + pHeight - p * pHeight - 20;
+      rot = 90;
+    } else if (pos < 3) {
+      const p = pos - 2;
+      x = pLeft + pWidth - p * pWidth - 20;
+      y = pTop - 40;
+      rot = 180;
+    } else {
+      const p = pos - 3;
+      x = pLeft - 35;
+      y = pTop + p * pHeight - 10;
+      rot = -90;
+    }
+
+    archie.style.left = x + 'px';
+    archie.style.top = y + 'px';
+    archie.style.right = 'auto';
+    archie.style.bottom = 'auto';
+    archie.style.transform = `rotate(${rot}deg)`;
+  }
+
+  // Typing handler with personality
+  const input = document.getElementById('chatInput');
+  const typingHandler = () => {
+    lastTyping = performance.now();
+    typeCount++;
+    targetSpeed = 0.008;
+    setExpression('excited');
+
+    // Rapid typing = more excited
+    if (typeCount > 15) {
+      setExpression('wide-eyed');
+      setExpression('brows-raised');
+      targetSpeed = 0.012;
+    }
+
+    clearTimeout(archie._calmTimer);
+    archie._calmTimer = setTimeout(() => {
+      targetSpeed = 0.002;
+      setExpression('');
+      typeCount = 0;
+
+      // Bored foot tap when they stop
+      archie.classList.add('tapping');
+      setTimeout(() => archie.classList.remove('tapping'), 800);
+    }, 1800);
+  };
+  input.addEventListener('input', typingHandler);
+  archie._typingHandler = typingHandler;
+
+  // Enable dangling legs when upside down
+  function updateDangle(pos) {
+    if (pos >= 2 && pos < 3) {
+      if (!archie.classList.contains('dangling')) {
+        archie.classList.add('dangling');
+      }
+    } else {
+      archie.classList.remove('dangling');
+    }
+  }
+
+  function crawlFrame(now) {
+    // Smooth speed interpolation
+    speed += (targetSpeed - speed) * 0.08;
+
+    t += speed;
+    if (t > 4) t -= 4;
+    updateCrawlerPos();
+    updateDangle(t % 4);
+
+    // Peek at corners
+    const pos = t % 4;
+    const atCorner = (pos % 1) < 0.05 || (pos % 1) > 0.95;
+    if (atCorner && now - lastPeekTime > 3000) {
+      lastPeekTime = now;
+      archie.classList.add('peeking');
+      setTimeout(() => archie.classList.remove('peeking'), 600);
+    }
+
+    // Occasional glasses adjust
+    if (Math.random() < 0.002) {
+      adjustGlasses(300);
+    }
+
+    // Occasional foot tap when idle
+    if (speed < 0.003 && Math.random() < 0.003 && now - lastTapTime > 4000) {
+      lastTapTime = now;
+      archie.classList.add('tapping');
+      setTimeout(() => archie.classList.remove('tapping'), 800);
+    }
+
+    crawlerRAF = requestAnimationFrame(crawlFrame);
+  }
+
+  updateCrawlerPos();
+  crawlerRAF = requestAnimationFrame(crawlFrame);
+}
+
+
+// ═══════════════════════════════
+// SCENARIO 3: THE IDLE DREAMER
+// ═══════════════════════════════
+async function startSleep() {
+  if (animating) return;
+  animating = true;
+  disableButtons();
+  showLabel('The Idle Dreamer \u2014 watch Archie fall asleep');
+
+  // Phase 1: Idle fidgeting
+  await sleep(600);
+  showLabel('Getting bored... fidgeting');
+  adjustGlasses(300);
+  await sleep(800);
+
+  // Look around
+  archie.classList.add('looking-left');
+  await sleep(500);
+  archie.classList.remove('looking-left');
+  archie.classList.add('looking-right');
+  await sleep(600);
+  archie.classList.remove('looking-right');
+  await sleep(400);
+
+  // Foot tap
+  archie.classList.add('tapping');
+  await sleep(800);
+  archie.classList.remove('tapping');
+
+  // Phase 2: Yawn
+  showLabel('A big yawn...');
+  setExpression('yawning');
+  setExpression('brows-raised');
+  await sleep(1200);
+  setExpression('');
+
+  // Phase 3: Getting drowsy
+  showLabel('Getting drowsy...');
+  archie.classList.add('drowsy');
+  setExpression('sleepy-eyes');
+  await sleep(1500);
+
+  // Glasses slipping gradually
+  showLabel('Glasses slipping...');
+  await sleep(1500);
+
+  // One more fight against sleep
+  archie.classList.remove('drowsy');
+  setExpression('');
+  showLabel('Trying to stay awake...');
+  adjustGlasses(300);
+  hairBounce();
+  await sleep(600);
+
+  // But no...
+  archie.classList.add('drowsy');
+  setExpression('sleepy-eyes');
+  await sleep(1200);
+
+  // Phase 4: Fall asleep
+  showLabel('Falling asleep...');
+  archie.classList.remove('drowsy');
+  archie.classList.add('sleeping');
+  setStatus('idle \u2014 napping');
+  await sleep(800);
+
+  // Phase 5: Z's + snore puffs
+  showLabel("Deep sleep... Z's float up (click anywhere to wake)");
+  let zCount = 0;
+
+  zzzInterval = setInterval(() => {
+    const archieRect = archie.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
+    const baseX = archieRect.left - stageRect.left + 40;
+    const baseY = archieRect.top - stageRect.top - 5;
+
+    const z = document.createElement('div');
+    z.className = 'zzz';
+    z.textContent = 'Z';
+    z.style.fontSize = (10 + zCount * 4) + 'px';
+    z.style.left = (baseX + zCount * 6) + 'px';
+    z.style.top = baseY + 'px';
+    stage.appendChild(z);
+
+    requestAnimationFrame(() => z.classList.add('float'));
+    setTimeout(() => z.remove(), 2900);
+
+    zCount = (zCount + 1) % 3;
+  }, 950);
+
+  // Snore puffs
+  snoreInterval = setInterval(() => {
+    const archieRect = archie.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
+
+    const puff = document.createElement('div');
+    puff.className = 'snore-puff';
+    puff.style.left = (archieRect.left - stageRect.left + 35) + 'px';
+    puff.style.top = (archieRect.top - stageRect.top + 22) + 'px';
+    stage.appendChild(puff);
+
+    requestAnimationFrame(() => puff.classList.add('puff'));
+    setTimeout(() => puff.remove(), 1900);
+  }, 2200);
+
+  // Wake-up on click
+  const wakeHandler = async () => {
+    stage.removeEventListener('click', wakeHandler);
+
+    clearInterval(zzzInterval); zzzInterval = null;
+    clearInterval(snoreInterval); snoreInterval = null;
+    document.querySelectorAll('.zzz, .snore-puff').forEach(el => el.remove());
+
+    // Wake sequence!
+    showLabel('Waking up!');
+
+    // Startle — wide eyes, hair bounce, squash
+    archie.classList.remove('sleeping');
+    setExpression('wide-eyed');
+    setExpression('brows-raised');
+    hairBounce();
+    squashStretch('landing', 120);
+    await sleep(150);
+    squashStretch('settling', 250);
+
+    await sleep(250);
+
+    // THE glasses push-up moment (the most endearing beat)
+    showLabel('The glasses push-up \u2014 the most endearing beat');
+    adjustGlasses(500);
+    flashGlint();
+    await sleep(300);
+    setExpression('grin');
+    await sleep(400);
+
+    // Blink a couple times adjusting to light
+    setExpression('sleepy-eyes');
+    await sleep(200);
+    setExpression('');
+    await sleep(300);
+
+    // Small wave
+    archie.classList.add('waving');
+    await sleep(800);
+    archie.classList.remove('waving');
+
+    setExpression('');
+    setStatus('connected');
+    adjustGlasses();
+    await sleep(600);
+
+    showLabel('Archie is awake and ready!');
+    animating = false;
+    enableButtons();
+  };
+
+  stage.style.cursor = 'pointer';
+  stage.addEventListener('click', wakeHandler);
+}
+
+
+// ═══════════════════════════════
+// RESET
+// ═══════════════════════════════
+function resetAll() {
+  if (zzzInterval) { clearInterval(zzzInterval); zzzInterval = null; }
+  if (snoreInterval) { clearInterval(snoreInterval); snoreInterval = null; }
+  if (crawlerRAF) { cancelAnimationFrame(crawlerRAF); crawlerRAF = null; }
+
+  const input = document.getElementById('chatInput');
+  if (archie._typingHandler) {
+    input.removeEventListener('input', archie._typingHandler);
+    archie._typingHandler = null;
+  }
+
+  // Reset Archie — remove ALL state classes
+  archie.className = 'archie at-chat';
+  archie.style = '';
+
+  forestScene.classList.remove('active');
+  chatPanel.classList.remove('dimmed');
+  airplane.classList.remove('visible');
+  airplane.style = '';
+  paperSheet.classList.remove('visible');
+  paperSheet.querySelectorAll('.scribble-line').forEach(l => l.remove());
+  paperSheet.style = '';
+
+  chatMsgs.innerHTML = '<div class="chat-msg assistant" style="animation-delay:0s">Hey. I\'m Archie. Ask me anything about the architecture.</div>';
+  setStatus('connected');
+  input.value = '';
+
+  document.querySelectorAll('.zzz, .trail-dot, .snore-puff, .impact-star').forEach(el => el.remove());
+
+  stage.style.cursor = '';
+
+  hideLabel();
+  animating = false;
+  enableButtons();
+}
+
+setTimeout(() => showLabel('Click a scenario below to see Archie in action'), 500);
+</script>
+</body>
+</html>
