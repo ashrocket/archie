@@ -1245,6 +1245,9 @@ body {
 .archie.edge-top .a-arm--r {
   animation: balanceArmR 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
 }
+.archie.edge-top .a-coat-flap {
+  animation: coatFlap 0.6s ease-in-out infinite;
+}
 
 @keyframes shuffleL {
   0%, 100% { transform: rotate(-5deg); }
@@ -1283,6 +1286,10 @@ body {
 }
 .archie.edge-left .a-leg--r {
   animation: descendLeg 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s infinite;
+}
+.archie.edge-left .a-coat-flap {
+  transform: rotate(-8deg);
+  animation: climbCoatDangle 1.2s ease-in-out infinite;
 }
 
 @keyframes descendArm {
