@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const WIDGET_PATH = path.join(__dirname, '..', 'skills', 'archie', 'bridge', 'widget.js');
+const WIDGET_PATH = path.join(__dirname, '..', '..', 'skills', 'archie', 'bridge', 'widget.js');
 
 function inject(htmlPath, port) {
   const abs = path.resolve(htmlPath);

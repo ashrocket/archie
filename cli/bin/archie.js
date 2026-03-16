@@ -65,7 +65,9 @@ program
             bridge.broadcast(errMsg);
           }
         }
-      } catch {}
+      } catch (err) {
+        process.stderr.write(`Poll error: ${err.message}\n`);
+      }
     }, 1000);
 
     // Handle target argument

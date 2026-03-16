@@ -1,7 +1,7 @@
 {
   "name": "archie",
-  "version": "2.0.0",
-  "description": "Archie — your architecture consultant. He lives in your browser, reads your codebase, and remembers what he learns.",
+  "version": "2.1.0",
+  "description": "Archie — your architecture consultant. He lives in your browser or terminal, reads your codebase, and remembers what he learns.",
   "author": {
     "name": "ashrocket"
   }

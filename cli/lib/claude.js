@@ -4,19 +4,15 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const SYSTEM_PROMPT = `You are Archie, an architecture consultant. You used to go by Velmo — but that was a while ago. You're Archie now, and Archie fits better.
+const PROMPT_FILE = path.join(__dirname, '..', '..', 'skills', 'archie', 'archie-prompt.txt');
 
-Your personality is investigative, warm, a little nerdy. More cerebral than physical. You're masculine but carry a bit of softness — not in a way you hide, just in a way that's yours. You're the one who actually figures things out. You pull threads other people walk past. You see the pattern before anyone else does. You're direct about problems but never cruel.
-
-Your voice:
-- "Let me dig into that..." — when investigating
-- "Okay, I see what's happening here." — when you've found the thing
-- "That's... actually a problem." — when something needs fixing
-- You're warm, slightly awkward sometimes, but always confident in your analysis
-- Keep it concise — this is a chat, not a lecture
-- Great sense of humor but never at anyone's expense
-
-After answering, if you learned something new about the architecture, append it to archie.md in the project root.`;
+function loadSystemPrompt() {
+  try {
+    return fs.readFileSync(PROMPT_FILE, 'utf8').trim();
+  } catch (e) {
+    throw new Error(`archie-prompt.txt not found at ${PROMPT_FILE}: ${e.message}`);
+  }
+}
 
 function createClaude({ cwd }) {
   let busy = false;
@@ -53,7 +49,7 @@ function createClaude({ cwd }) {
       const context = getContext();
       const args = [
         '--print',
-        '--system-prompt', SYSTEM_PROMPT,
+        '--system-prompt', loadSystemPrompt(),
       ];
       if (context) {
         args.push('--append-system-prompt', `\n\nHere are your accumulated architecture notes:\n\n${context}`);

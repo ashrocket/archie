@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bringing Archie to Life — Four-Team Animation Synthesis</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --parchment: #FDF6EC;
+    --sand: #F5E6C8;
+    --border: #E8D5B8;
+    --amber: #C17F3A;
+    --amber-dark: #A66A2E;
+    --ink: #3D2B1F;
+    --ink-light: #5C4433;
+    --muted: #8B7355;
+    --teal: #5BCEFA;
+    --pink: #F5A9B8;
+    --green: #5B8C5A;
+    --forest: #2D6A6A;
+    --canvas-red: #C45B4A;
+    --engine-blue: #4A7B9C;
+    --soul-violet: #8B6CAA;
+    --kinetic-green: #6B9E5B;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.75;
+    font-size: 15px;
+    overflow-x: hidden;
+  }
+
+  /* ========== GRAIN OVERLAY ========== */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ========== HERO ========== */
+  .hero {
+    position: relative;
+    padding: 100px 48px 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(193,127,58,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-kicker {
+    font-family: 'Caveat', cursive;
+    font-size: 20px;
+    color: var(--amber);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.2s;
+  }
+
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.4s;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--amber);
+  }
+
+  .hero-subtitle {
+    font-size: 17px;
+    font-style: italic;
+    color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.6s;
+  }
+
+  .accent-bar {
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--teal), var(--pink), #FFF, var(--pink), var(--teal));
+    border-radius: 2px;
+    margin: 0 auto 40px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.8s;
+  }
+
+  /* Team badge row */
+  .team-badges {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 1.0s;
+  }
+
+  .team-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: 2px solid;
+  }
+
+  .team-badge.canvas { background: rgba(196,91,74,0.08); border-color: var(--canvas-red); color: var(--canvas-red); }
+  .team-badge.engine { background: rgba(74,123,156,0.08); border-color: var(--engine-blue); color: var(--engine-blue); }
+  .team-badge.soul { background: rgba(139,108,170,0.08); border-color: var(--soul-violet); color: var(--soul-violet); }
+  .team-badge.kinetic { background: rgba(107,158,91,0.08); border-color: var(--kinetic-green); color: var(--kinetic-green); }
+
+  .team-badge .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .team-badge.canvas .dot { background: var(--canvas-red); }
+  .team-badge.engine .dot { background: var(--engine-blue); }
+  .team-badge.soul .dot { background: var(--soul-violet); }
+  .team-badge.kinetic .dot { background: var(--kinetic-green); }
+
+  /* ========== NAVIGATION ========== */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--parchment);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .toc a {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--muted);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .toc a:hover {
+    background: var(--amber);
+    color: var(--cream);
+  }
+
+  /* ========== SECTIONS ========== */
+  .chapter {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 64px 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .chapter-number {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+
+  .chapter h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .chapter-intro {
+    font-style: italic;
+    color: var(--muted);
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+
+  .chapter h3 {
+    font-size: 18px;
+    color: var(--amber);
+    margin: 36px 0 12px;
+  }
+
+  .chapter h4 {
+    font-size: 15px;
+    color: var(--ink);
+    margin: 24px 0 8px;
+  }
+
+  p { margin-bottom: 16px; font-size: 14.5px; }
+
+  /* ========== BLOCKQUOTES ========== */
+  blockquote {
+    border-left: 3px solid var(--amber);
+    padding: 16px 24px;
+    margin: 24px 0;
+    background: var(--parchment);
+    font-style: italic;
+    color: var(--ink-light);
+    border-radius: 0 10px 10px 0;
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  blockquote strong {
+    color: var(--amber);
+    font-style: normal;
+  }
+
+  /* ========== SCENARIO CARDS ========== */
+  .scenarios {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin: 24px 0;
+  }
+
+  .scenario-card {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scenario-card::before {
+    content: attr(data-num);
+    position: absolute;
+    top: -10px;
+    right: 16px;
+    font-family: 'Caveat', cursive;
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--amber);
+    opacity: 0.08;
+    line-height: 1;
+  }
+
+  .scenario-card h4 {
+    font-size: 17px;
+    color: var(--amber);
+    margin: 0 0 8px;
+  }
+
+  .scenario-card p {
+    font-size: 14px;
+    color: var(--ink-light);
+    margin: 0;
+  }
+
+  /* ========== CONSENSUS TABLE ========== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 13.5px;
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--ink);
+    color: var(--cream);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+  }
+
+  th:first-child { border-radius: 8px 0 0 0; }
+  th:last-child { border-radius: 0 8px 0 0; }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: rgba(253,246,236,0.5); }
+
+  /* ========== THE BIG SPLIT — TEAM COLUMNS ========== */
+  .split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 700px) {
+    .split-grid { grid-template-columns: 1fr; }
+  }
+
+  .team-card {
+    border-radius: 12px;
+    padding: 28px;
+    border: 2px solid;
+    position: relative;
+  }
+
+  .team-card.canvas { border-color: var(--canvas-red); background: rgba(196,91,74,0.03); }
+  .team-card.engine { border-color: var(--engine-blue); background: rgba(74,123,156,0.03); }
+  .team-card.soul { border-color: var(--soul-violet); background: rgba(139,108,170,0.03); }
+  .team-card.kinetic { border-color: var(--kinetic-green); background: rgba(107,158,91,0.03); }
+
+  .team-card .team-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 12px;
+    color: white;
+  }
+
+  .team-card.canvas .team-label { background: var(--canvas-red); }
+  .team-card.engine .team-label { background: var(--engine-blue); }
+  .team-card.soul .team-label { background: var(--soul-violet); }
+  .team-card.kinetic .team-label { background: var(--kinetic-green); }
+
+  .team-card h4 {
+    font-size: 16px;
+    margin: 0 0 8px;
+    color: var(--ink);
+  }
+
+  .team-card p, .team-card li {
+    font-size: 13.5px;
+    color: var(--ink-light);
+  }
+
+  .team-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0;
+  }
+
+  .team-card ul li {
+    padding: 4px 0 4px 18px;
+    position: relative;
+  }
+
+  .team-card ul li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .team-card .con li::before {
+    content: '-';
+    color: var(--canvas-red);
+  }
+
+  /* ========== STANDOUT IDEAS ========== */
+  .standout {
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .standout::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px;
+    height: 100%;
+    border-radius: 12px 0 0 12px;
+  }
+
+  .standout.canvas::after { background: var(--canvas-red); }
+  .standout.engine::after { background: var(--engine-blue); }
+  .standout.soul::after { background: var(--soul-violet); }
+  .standout.kinetic::after { background: var(--kinetic-green); }
+
+  .standout .source-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    color: white;
+  }
+
+  .standout.canvas .source-label { background: var(--canvas-red); }
+  .standout.engine .source-label { background: var(--engine-blue); }
+  .standout.soul .source-label { background: var(--soul-violet); }
+  .standout.kinetic .source-label { background: var(--kinetic-green); }
+
+  .standout h4 {
+    font-size: 16px;
+    margin: 4px 0 8px;
+  }
+
+  /* ========== CODE BLOCKS ========== */
+  .code-block {
+    background: var(--ink);
+    color: #E8D5B8;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .code-block .comment { color: #8B7355; }
+  .code-block .keyword { color: var(--teal); }
+  .code-block .string { color: var(--pink); }
+  .code-block .number { color: var(--amber); }
+
+  /* ========== THE STORYBOARD ========== */
+  .storyboard {
+    margin: 32px 0;
+    position: relative;
+  }
+
+  .storyboard::before {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .beat {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .beat-time {
+    flex-shrink: 0;
+    width: 56px;
+    text-align: right;
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    padding-top: 4px;
+    position: relative;
+  }
+
+  .beat-time::after {
+    content: '';
+    position: absolute;
+    right: -15px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--amber);
+    border: 2px solid var(--cream);
+  }
+
+  .beat-content {
+    flex: 1;
+    padding-left: 8px;
+  }
+
+  .beat-content h5 {
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .beat-content p {
+    font-size: 13.5px;
+    color: var(--ink-light);
+    margin: 0;
+  }
+
+  .beat-content .principle {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--sand);
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+  }
+
+  /* ========== EMOTIONAL STATE MAP ========== */
+  .emotion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  @media (max-width: 700px) {
+    .emotion-grid { grid-template-columns: 1fr; }
+  }
+
+  .emotion-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--parchment);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .emotion-trigger {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--amber);
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+
+  .emotion-response {
+    font-size: 13px;
+    color: var(--ink-light);
+    font-style: italic;
+  }
+
+  /* ========== VIVACITY DEMO ========== */
+  .vivacity-demo {
+    background: var(--ink);
+    border-radius: 12px;
+    padding: 32px;
+    margin: 24px 0;
+    color: var(--sand);
+  }
+
+  .vivacity-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0;
+  }
+
+  .vivacity-label {
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    width: 80px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .vivacity-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,248,240,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .vivacity-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+
+  .vivacity-fill.v100 { width: 100%; background: linear-gradient(90deg, var(--amber), #E8A84C); }
+  .vivacity-fill.v75  { width: 75%;  background: linear-gradient(90deg, var(--amber), var(--amber-dark)); }
+  .vivacity-fill.v50  { width: 50%;  background: linear-gradient(90deg, var(--muted), var(--amber-dark)); }
+  .vivacity-fill.v40  { width: 40%;  background: var(--muted); }
+
+  .vivacity-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    width: 32px;
+    text-align: left;
+  }
+
+  .vivacity-desc {
+    font-family: 'Caveat', cursive;
+    font-size: 15px;
+    color: var(--sand);
+    opacity: 0.7;
+    margin-left: 92px;
+    margin-top: -4px;
+    margin-bottom: 12px;
+  }
+
+  /* ========== RECOMMENDATION BANNER ========== */
+  .recommendation {
+    background: linear-gradient(135deg, var(--parchment) 0%, var(--sand) 100%);
+    border: 2px solid var(--amber);
+    border-radius: 16px;
+    padding: 40px;
+    margin: 32px 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .recommendation::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(193,127,58,0.1) 0%, transparent 70%);
+  }
+
+  .recommendation h3 {
+    font-size: 24px;
+    color: var(--amber);
+    margin-bottom: 12px;
+  }
+
+  .recommendation p {
+    max-width: 600px;
+    margin: 0 auto 16px;
+    font-size: 15px;
+  }
+
+  /* ========== PHASES TIMELINE ========== */
+  .phases {
+    margin: 32px 0;
+  }
+
+  .phase {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 24px;
+    background: var(--parchment);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    position: relative;
+  }
+
+  .phase-num {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    background: var(--amber);
+    color: var(--cream);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Caveat', cursive;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .phase-body h4 {
+    font-size: 15px;
+    margin: 0 0 4px;
+    color: var(--ink);
+  }
+
+  .phase-body .phase-time {
+    font-size: 12px;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .phase-body ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: var(--ink-light);
+  }
+
+  .phase-body li { margin-bottom: 4px; }
+
+  /* ========== CLOSING QUOTE ========== */
+  .closing {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 80px 48px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+
+  .closing-quote {
+    font-size: clamp(18px, 3vw, 24px);
+    font-style: italic;
+    color: var(--ink);
+    max-width: 700px;
+    margin: 0 auto 24px;
+    line-height: 1.6;
+  }
+
+  .closing-quote strong { color: var(--amber); font-style: normal; }
+
+  .closing-attr {
+    font-family: 'Caveat', cursive;
+    font-size: 18px;
+    color: var(--muted);
+  }
+
+  .closing .accent-bar {
+    margin-top: 40px;
+    animation: none;
+    opacity: 1;
+  }
+
+  .closing-footnote {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 24px;
+    font-style: italic;
+  }
+
+  /* ========== LIST STYLES ========== */
+  ul, ol { margin: 8px 0 16px 20px; }
+  li { margin-bottom: 6px; font-size: 14px; }
+
+  code {
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    background: var(--sand);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--amber);
+  }
+
+  strong { color: var(--ink); }
+  em { color: var(--ink-light); }
+
+  /* ========== HANDWRITTEN ANNOTATIONS ========== */
+  .margin-note {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: var(--amber);
+    transform: rotate(-2deg);
+    display: inline-block;
+    margin: 8px 0;
+    padding: 4px 12px;
+    background: rgba(193,127,58,0.06);
+    border-radius: 4px;
+  }
+
+  .arrow-note {
+    font-family: 'Caveat', cursive;
+    font-size: 15px;
+    color: var(--muted);
+    margin: 8px 0 16px;
+  }
+
+  /* ========== SOUND PALETTE ========== */
+  .sound-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 24px 0;
+  }
+
+  .sound-item {
+    background: var(--ink);
+    border-radius: 8px;
+    padding: 16px;
+    color: var(--sand);
+  }
+
+  .sound-item .sound-name {
+    font-family: 'Caveat', cursive;
+    font-size: 16px;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+
+  .sound-item .sound-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .sound-item .sound-dur {
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--teal);
+    margin-top: 6px;
+  }
+
+  /* ========== COMPARISON BANNER ========== */
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    margin: 24px 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .compare-row { grid-template-columns: 1fr; }
+  }
+
+  .compare-cell {
+    padding: 20px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+
+  .compare-cell:last-child { border-right: none; }
+
+  .compare-cell .compare-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .compare-cell .compare-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--amber);
+  }
+
+  .compare-cell .compare-note {
+    font-size: 12px;
+    color: var(--ink-light);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
+  .compare-cell.winner {
+    background: var(--parchment);
+  }
+
+  /* ========== ANIMATIONS ========== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 700px) {
+    .hero { padding: 60px 24px 48px; }
+    .chapter { padding: 40px 24px; }
+    .closing { padding: 48px 24px; }
+    .recommendation { padding: 28px 24px; }
+    .split-grid { grid-template-columns: 1fr; }
+    .emotion-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Paper airplane decoration */
+  .airplane-deco {
+    position: relative;
+    text-align: center;
+    padding: 32px 0;
+    color: var(--border);
+    font-size: 24px;
+    letter-spacing: 12px;
+  }
+
+  .airplane-deco svg {
+    width: 32px;
+    height: 32px;
+    fill: var(--amber);
+    opacity: 0.3;
+    transform: rotate(-15deg);
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- HERO -->
+<!-- ============================================================ -->
+<div class="hero">
+  <div class="hero-kicker">Four teams, one character, three scenarios</div>
+  <h1>Bringing <em>Archie</em> to Life</h1>
+  <p class="hero-subtitle">A synthesis of independent animation proposals from four parallel design and engineering teams.</p>
+  <div class="accent-bar"></div>
+  <div class="team-badges">
+    <span class="team-badge canvas"><span class="dot"></span> Canvas</span>
+    <span class="team-badge engine"><span class="dot"></span> Engine</span>
+    <span class="team-badge soul"><span class="dot"></span> Soul</span>
+    <span class="team-badge kinetic"><span class="dot"></span> Kinetic</span>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TOC -->
+<!-- ============================================================ -->
+<nav class="toc">
+  <a href="#scenarios">The Scenarios</a>
+  <a href="#consensus">Consensus</a>
+  <a href="#split">The Big Split</a>
+  <a href="#standouts">Standout Ideas</a>
+  <a href="#airplane">Paper Airplane</a>
+  <a href="#emotions">Emotional Map</a>
+  <a href="#vivacity">Vivacity System</a>
+  <a href="#sound">Sound</a>
+  <a href="#recommendation">Recommendation</a>
+  <a href="#phases">Phases</a>
+</nav>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 1: THE THREE SCENARIOS -->
+<!-- ============================================================ -->
+<div class="chapter" id="scenarios">
+  <div class="chapter-number">Chapter One</div>
+  <h2>The Three Scenarios</h2>
+  <p class="chapter-intro">All four teams independently designed for the same three animation behaviors. No coordination. Same conclusions.</p>
+
+  <div class="scenarios">
+    <div class="scenario-card" data-num="1">
+      <h4>The Journey Response</h4>
+      <p>Archie gets up from the chat bubble, walks off-screen, wanders down a wooded trail with parallax scrolling, sits on a log to think. When the response is ready, he writes it on a paper airplane, throws it &mdash; the airplane arcs back to the chat window, lands, unfurls, and the text is readable. Wait-time becomes anticipation.</p>
+    </div>
+    <div class="scenario-card" data-num="2">
+      <h4>The Impatient Crawler</h4>
+      <p>While the user types, Archie crawls around the edges of the chat window frame. He hangs upside-down from the top, peeks around corners, taps his foot on the border, adjusts his glasses anxiously. His speed correlates to typing speed &mdash; faster typing means a more excited Archie.</p>
+    </div>
+    <div class="scenario-card" data-num="3">
+      <h4>The Idle Dreamer</h4>
+      <p>During quiet time, Archie gradually falls asleep &mdash; head nods, glasses slip, Z's float up. Alternatively, he notices the document you're chatting about, gestures at it, conjures a cartoon explainer, then lassoes it into the chat where it becomes a downloadable artifact.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 2: WHAT THEY ALL AGREE ON -->
+<!-- ============================================================ -->
+<div class="chapter" id="consensus">
+  <div class="chapter-number">Chapter Two</div>
+  <h2>Where All Four Teams Converge</h2>
+  <p class="chapter-intro">When independent teams reach the same conclusion without coordinating, those conclusions are real.</p>
+
+  <h3>Shared Character Insights</h3>
+  <ul>
+    <li><strong>Glasses adjustment</strong> is Archie's signature tell &mdash; thinking, waking up, nervous</li>
+    <li>Expression changes <strong>snap</strong> with a brief hold (the "Newgrounds snap"), never tween smoothly</li>
+    <li>The walk cycle should feel <strong>stiff and deliberate</strong> &mdash; storybook puppet, not Disney fluid</li>
+    <li>Sleep progression: <em>fidget &rarr; drowsy &rarr; head nod &rarr; asleep &rarr; Z's</em></li>
+    <li>The <strong>glasses-push-up on wake</strong> is universally the most endearing animation beat</li>
+  </ul>
+
+  <h3>Shared Architecture</h3>
+  <ul>
+    <li>The chat widget remains a <strong>single droppable <code>&lt;script&gt;</code> tag</strong></li>
+    <li>Bridge server already serves static files &mdash; no server changes for assets</li>
+    <li>Archie <strong>breaks out</strong> of the chat panel bounds via <code>position: fixed</code> layers outside the panel DOM</li>
+    <li>The paper airplane is the <strong>signature moment</strong> &mdash; every team spent the most design energy here</li>
+    <li><code>prefers-reduced-motion</code> skips to final state</li>
+    <li>Users need a <strong>skip mechanism</strong> (click to jump to text)</li>
+  </ul>
+
+  <h3>Timing Consensus</h3>
+  <table>
+    <tr>
+      <th>Phase</th>
+      <th>All Teams Agree</th>
+    </tr>
+    <tr><td>Airplane fold</td><td>0.5 &ndash; 1.2 seconds</td></tr>
+    <tr><td>Airplane flight</td><td>1.0 &ndash; 1.5 seconds</td></tr>
+    <tr><td>Unfurl + text reveal</td><td>0.6 &ndash; 1.2 seconds</td></tr>
+    <tr><td>Full journey (send &rarr; readable)</td><td>3.5 &ndash; 8.5 seconds</td></tr>
+    <tr><td>Sleep onset</td><td>60 &ndash; 120 seconds of idle</td></tr>
+    <tr><td>Wake-up sequence</td><td>1 &ndash; 3 seconds</td></tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 3: THE BIG SPLIT -->
+<!-- ============================================================ -->
+<div class="chapter" id="split">
+  <div class="chapter-number">Chapter Three</div>
+  <h2>The Big Split: How to Render Archie</h2>
+  <p class="chapter-intro">The teams converged on what Archie should do. They diverged on how to make it happen.</p>
+
+  <div class="compare-row">
+    <div class="compare-cell">
+      <div class="compare-label">Canvas 2D + Sprites</div>
+      <div class="compare-value">~380 KB</div>
+      <div class="compare-note">CANVAS + ENGINE</div>
+    </div>
+    <div class="compare-cell">
+      <div class="compare-label">CSS + DOM</div>
+      <div class="compare-value">~0 KB</div>
+      <div class="compare-note">SOUL</div>
+    </div>
+    <div class="compare-cell winner">
+      <div class="compare-label">SVG + GSAP + Lottie</div>
+      <div class="compare-value">~111 KB</div>
+      <div class="compare-note">KINETIC (recommended)</div>
+    </div>
+  </div>
+
+  <div class="split-grid">
+    <div class="team-card canvas">
+      <span class="team-label">Canvas</span>
+      <h4>Canvas 2D + Sprite Sheets</h4>
+      <p>Raw Canvas API with modular body-part sprite sheets composited at render time. Zero dependencies.</p>
+      <ul>
+        <li>Zero external dependencies</li>
+        <li>Precise pixel control</li>
+        <li>24fps cap as deliberate aesthetic</li>
+        <li>Combinatorial sprite expressiveness</li>
+      </ul>
+      <ul class="con">
+        <li>Opaque to screen readers</li>
+        <li>New animations = new art assets</li>
+        <li>Must build easing/timelines from scratch</li>
+      </ul>
+    </div>
+
+    <div class="team-card engine">
+      <span class="team-label">Engine</span>
+      <h4>Canvas 2D + State Machine</h4>
+      <p>Three-canvas layer architecture with 5-level priority interrupt system and three-tier asset loading.</p>
+      <ul>
+        <li>Rigorous state management</li>
+        <li>Dirty-rect rendering optimization</li>
+        <li>Adaptive frame rate for mobile</li>
+        <li>Three-tier lazy asset loading</li>
+      </ul>
+      <ul class="con">
+        <li>Same Canvas accessibility gap</li>
+        <li>Complex custom RAF management</li>
+        <li>Heavy total asset weight (~465 KB)</li>
+      </ul>
+    </div>
+
+    <div class="team-card soul">
+      <span class="team-label">Soul</span>
+      <h4>CSS + DOM (Evolve Existing)</h4>
+      <p>Build on the CSS character already in ArchieReadMe.html. Zero asset loading, fully accessible by default.</p>
+      <ul>
+        <li>CSS Archie already exists (200 lines)</li>
+        <li>Zero asset downloads</li>
+        <li>Naturally accessible (DOM = screen readers)</li>
+        <li>Trivially responsive</li>
+      </ul>
+      <ul class="con">
+        <li>Can't do complex walk cycles</li>
+        <li>Limited to transform/opacity</li>
+        <li>No visual richness of sprites</li>
+      </ul>
+    </div>
+
+    <div class="team-card kinetic">
+      <span class="team-label">Kinetic</span>
+      <h4>SVG + GSAP + Lottie</h4>
+      <p>Motion graphics approach: GSAP labeled timelines, Lottie for complex sequences, SVG character rig. Designer-controlled pipeline.</p>
+      <ul>
+        <li>Lightest weight (111 KB gzipped)</li>
+        <li>SVG is DOM &rarr; ARIA accessible</li>
+        <li>GSAP labels: seek, scrub, reverse</li>
+        <li>After Effects &rarr; Lottie creative pipeline</li>
+        <li>MorphSVG for paper airplane fold</li>
+        <li>Resolution independent at any DPI</li>
+      </ul>
+      <ul class="con">
+        <li>External deps: GSAP (~38KB), Lottie (~22KB)</li>
+        <li>MorphSVG/DrawSVG are paid plugins</li>
+        <li>Requires After Effects for authoring</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="margin-note">^ the rendering debate was the juiciest part</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 4: STANDOUT IDEAS -->
+<!-- ============================================================ -->
+<div class="chapter" id="standouts">
+  <div class="chapter-number">Chapter Four</div>
+  <h2>Standout Ideas by Team</h2>
+  <p class="chapter-intro">Each team brought something unique that the others didn't think of.</p>
+
+  <div class="standout canvas">
+    <span class="source-label">Canvas</span>
+    <h4>Modular Skeletal Sprites</h4>
+    <p>Instead of one giant sprite sheet, Archie is assembled from body-part sheets at render time: head, torso, arms, legs, glasses. A small set of parts creates hundreds of poses through combination &mdash; walking-while-looking-left, sitting-while-glasses-slip, crawling-while-worried. The slight imperfections in part alignment make him feel more hand-puppeted.</p>
+  </div>
+
+  <div class="standout canvas">
+    <span class="source-label">Canvas</span>
+    <h4>Verlet Rope Physics for the Lasso</h4>
+    <p>The lasso rope is modeled as a chain of 20 point-masses with distance constraints. Gravity and damping applied to all points. The twirl is a force on the leading mass. The rope is rendered by stroking a bezier path through the points. Physically plausible, visually hand-drawn.</p>
+  </div>
+
+  <div class="standout engine">
+    <span class="source-label">Engine</span>
+    <h4>Priority Interrupt State Machine</h4>
+    <p>A 5-level priority system prevents jarring animation conflicts:</p>
+    <div class="code-block"><span class="comment">// Priority 5:</span> AIRPLANE_FOLD, FLIGHT, UNFURL   <span class="comment">— NEVER interruptible</span>
+<span class="comment">// Priority 4:</span> EXPLAINER, LASSO               <span class="comment">— fast-forward on interrupt</span>
+<span class="comment">// Priority 3:</span> WALKING, SITTING, THINKING      <span class="comment">— graceful exit animation</span>
+<span class="comment">// Priority 2:</span> TYPING_DETECTED, CRAWLING       <span class="comment">— yield to user action</span>
+<span class="comment">// Priority 1:</span> IDLE, SLEEPING, DREAMING        <span class="comment">— freely interruptible</span></div>
+  </div>
+
+  <div class="standout engine">
+    <span class="source-label">Engine</span>
+    <h4>Three-Tier Asset Loading</h4>
+    <p><strong>Critical</strong> (loaded with widget): idle sprite, ~45KB. <strong>Eager</strong> (after first paint): walking + thinking + forest, ~170KB. <strong>Lazy</strong> (on first need): airplane, sleeping, crawling, lasso, ~200KB. The chat is functional before any animation assets arrive.</p>
+  </div>
+
+  <div class="standout kinetic">
+    <span class="source-label">Kinetic</span>
+    <h4>Custom Easing Language</h4>
+    <p>Three signature curves define Archie's motion personality across every animation:</p>
+    <div class="code-block"><span class="keyword">archieEase</span>    <span class="comment">— soft overshoot (12%) with one gentle wobble</span>
+               <span class="comment">— "hand-drawn character moving through physical space"</span>
+
+<span class="keyword">archieSnap</span>    <span class="comment">— fast attack, holds overshoot, snaps to final</span>
+               <span class="comment">— the Newgrounds puppet quality</span>
+
+<span class="keyword">archieSettle</span>  <span class="comment">— slow deceleration with micro-bounce</span>
+               <span class="comment">— for landing, sitting down, coming to rest</span></div>
+  </div>
+
+  <div class="standout kinetic">
+    <span class="source-label">Kinetic</span>
+    <h4>GSAP Master Timelines with Labels</h4>
+    <p>The entire journey response is one scrubable, seekable timeline:</p>
+    <div class="code-block">journey.<span class="keyword">addLabel</span>(<span class="string">"anticipation"</span>, <span class="number">0</span>)
+  .<span class="keyword">addLabel</span>(<span class="string">"glasses-bounce"</span>, <span class="number">0.35</span>)
+  .<span class="keyword">addLabel</span>(<span class="string">"walk-off"</span>, <span class="number">0.85</span>)
+  .<span class="keyword">addLabel</span>(<span class="string">"scene-transition"</span>, <span class="number">1.6</span>)
+  .<span class="keyword">addLabel</span>(<span class="string">"forest-arrive"</span>, <span class="number">2.2</span>)
+  .<span class="keyword">addLabel</span>(<span class="string">"writing"</span>, <span class="number">3.0</span>)
+  .<span class="keyword">addLabel</span>(<span class="string">"airplane"</span>, <span class="number">3.8</span>)
+  .<span class="keyword">addLabel</span>(<span class="string">"unfurl"</span>, <span class="number">5.5</span>)
+
+<span class="comment">// User clicks skip:</span>
+journey.<span class="keyword">seek</span>(<span class="string">"unfurl"</span>)
+
+<span class="comment">// Response arrives fast:</span>
+journey.<span class="keyword">timeScale</span>(<span class="number">2</span>)</div>
+    <p class="arrow-note">&uarr; This declarative choreography is impossible with raw Canvas requestAnimationFrame loops.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 5: THE PAPER AIRPLANE -->
+<!-- ============================================================ -->
+<div class="chapter" id="airplane">
+  <div class="chapter-number">Chapter Five</div>
+  <h2>The Paper Airplane</h2>
+  <p class="chapter-intro">Every team spent the most design energy here. This is Archie's signature moment.</p>
+
+  <h3>The Journey Storyboard</h3>
+
+  <div class="storyboard">
+    <div class="beat">
+      <div class="beat-time">0.0s</div>
+      <div class="beat-content">
+        <h5>Anticipation</h5>
+        <p>Archie's body compresses slightly &mdash; a squash before the spring. <code>scaleY: 0.92</code>, quick and subtle.</p>
+        <span class="principle">Squash &amp; Stretch</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">0.15s</div>
+      <div class="beat-content">
+        <h5>The Stand</h5>
+        <p>Archie stretches upward with slight overshoot. <code>back.out(1.4)</code> easing. Glasses lag behind and bounce on his nose.</p>
+        <span class="principle">Follow-Through</span>
+        <span class="principle">Secondary Action</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">0.5s</div>
+      <div class="beat-content">
+        <h5>The Turn</h5>
+        <p>Expression snaps to <em>thinking</em>. Head turns in 3 discrete steps (SteppedEase) &mdash; the Newgrounds snap. Body follows 100ms later.</p>
+        <span class="principle">Staging</span>
+        <span class="principle">Timing</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">0.85s</div>
+      <div class="beat-content">
+        <h5>The Walk-Off</h5>
+        <p>Lottie walk cycle begins. Archie moves rightward past the chat panel border. Coat tails sway with secondary action. He is stepping <em>out of the chat window into the page</em>.</p>
+        <span class="principle">Straight Ahead Action</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">1.6s</div>
+      <div class="beat-content">
+        <h5>Scene Transition</h5>
+        <p>A clip-path circle iris-wipe expands from where Archie exited. The forest fades in with parallax layers entering at different rates. Chat messages blur to 15% opacity beneath the scene.</p>
+        <span class="principle">Staging</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">2.2s</div>
+      <div class="beat-content">
+        <h5>Forest Arrival</h5>
+        <p>Archie walks deeper into the scene. Fireflies begin. Sitting down on the log: turn, crouch, seat &mdash; coat flares slightly. Notebook opens on his lap.</p>
+        <span class="principle">Appeal</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">3.0s+</div>
+      <div class="beat-content">
+        <h5>The Writing</h5>
+        <p>Archie writes in his notebook (looping). Every 6&ndash;8s he pauses, looks at the sky, thinks, resumes. Status text cycles: <em>"pulling threads..."</em>, <em>"I see something..."</em>, <em>"getting somewhere..."</em></p>
+        <span class="principle">Straight Ahead Action</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">resp.</div>
+      <div class="beat-content">
+        <h5>Eureka!</h5>
+        <p>Response arrives. Archie stops mid-stroke. Eyes widen. The glasses-push &mdash; <em>the tell</em>. He tears the page from his notebook. A deliberate, satisfying tear.</p>
+        <span class="principle">Exaggeration</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">+1.0s</div>
+      <div class="beat-content">
+        <h5>The Fold</h5>
+        <p>SVG MorphSVGPlugin: flat paper &rarr; first crease &rarr; body fold &rarr; wings out. Four morph stages at ~200ms each. Not sprite frames &mdash; actual path transformation.</p>
+        <span class="principle">Slow In / Slow Out</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">+1.6s</div>
+      <div class="beat-content">
+        <h5>The Flight</h5>
+        <p>GSAP MotionPath along a 5-point bezier curve. Airplane nose follows the path tangent (<code>autoRotate: true</code>). Subtle 3&deg; wobble oscillation. Wind trail lines. Tiny leaves disturbed. Scale shifts for depth (recedes, then approaches).</p>
+        <span class="principle">Arc</span>
+        <span class="principle">Secondary Action</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">+2.8s</div>
+      <div class="beat-content">
+        <h5>The Landing</h5>
+        <p>Nose tilts up (anticipation). Impact squash: <code>scaleY: 0.7, scaleX: 1.2</code>. Bounce, settle. Three variants: <strong>smooth</strong> (60%), <strong>bumpy</strong> (25%), <strong>stuck nose-first</strong> (15% &mdash; the humor landing that makes the user smile).</p>
+        <span class="principle">Squash &amp; Stretch</span>
+        <span class="principle">Appeal</span>
+      </div>
+    </div>
+    <div class="beat">
+      <div class="beat-time">+3.3s</div>
+      <div class="beat-content">
+        <h5>The Unfurl</h5>
+        <p>Reverse SVG morph: airplane &rarr; flat paper. Text appears via ink-bleed clip-path reveal (non-linear: fast soak at start, slows at edges). Paper transitions into a normal chat bubble. The response is readable.</p>
+        <span class="principle">Appeal</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="margin-note">That stuck-nose-first landing variant? Chef's kiss.</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 6: EMOTIONAL STATE MAP -->
+<!-- ============================================================ -->
+<div class="chapter" id="emotions">
+  <div class="chapter-number">Chapter Six</div>
+  <h2>The Emotional State Map</h2>
+  <p class="chapter-intro">Team SOUL mapped every user interaction to an Archie emotional response. He is a character with interiority, not a progress indicator.</p>
+
+  <h3>While You Type</h3>
+  <div class="emotion-grid">
+    <div class="emotion-item">
+      <div class="emotion-trigger">Typing fast</div>
+      <div class="emotion-response">Excited anticipation. Leans forward, bouncing on toes. "This person has something to say."</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Typing slowly</div>
+      <div class="emotion-response">Patient attention. Head tilts, hand on chin. Blink rate slows.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Deleting a lot</div>
+      <div class="emotion-response">Mild concern. Head tilts, eyebrows draw together. Adjusts glasses nervously.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Long pause</div>
+      <div class="emotion-response">Curiosity. Peers toward the text area. One eyebrow raised. "What are they thinking about?"</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Clears input</div>
+      <div class="emotion-response">Brief confusion. Double-blink. Slight shrug. Returns to neutral.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Pastes large text</div>
+      <div class="emotion-response">Surprise, then readiness. Eyes widen. Reaches for notebook. Straightens posture.</div>
+    </div>
+  </div>
+
+  <h3>While Claude Thinks</h3>
+  <div class="emotion-grid">
+    <div class="emotion-item">
+      <div class="emotion-trigger">Response &lt;2s</div>
+      <div class="emotion-response">"Oh, I know this one." Confident snap. Quick grin. No journey &mdash; snappy delivery.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Response 5-10s</div>
+      <div class="emotion-response">The journey begins. Deep thought. Walks toward the forest.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Response 30s+</div>
+      <div class="emotion-response">Deep research. Pages flip. Looks up at the sky. The world slows down. The scene breathes.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">Error</div>
+      <div class="emotion-response">Worried. Looks around nervously. Taps the dialogue frame. Tries to fix something with his hands.</div>
+    </div>
+  </div>
+
+  <h3>When You're Away</h3>
+  <div class="emotion-grid">
+    <div class="emotion-item">
+      <div class="emotion-trigger">15s idle</div>
+      <div class="emotion-response">First fidget. Shifts weight foot to foot. Natural, not performative.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">30s idle</div>
+      <div class="emotion-response">Pulls out notebook and starts doodling (not writing). A bird lands on a nearby branch.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">60s idle</div>
+      <div class="emotion-response">First drowsy signal. Heavy blinks. Notebook lowers. The quiet is warm.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">120s idle</div>
+      <div class="emotion-response">Asleep. Head on chest. Glasses askew. Gentle breathing. The bird settles on his shoulder.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">180s+ idle</div>
+      <div class="emotion-response">Deep sleep. Z's float up, hand-drawn. Dream bubble with tiny architecture diagrams.</div>
+    </div>
+    <div class="emotion-item">
+      <div class="emotion-trigger">You return</div>
+      <div class="emotion-response">The adorable wake-up. Head lifts. Bleary eyes. THE glasses push-up. Two blinks. Small stretch. Ready.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 7: VIVACITY SYSTEM -->
+<!-- ============================================================ -->
+<div class="chapter" id="vivacity">
+  <div class="chapter-number">Chapter Seven</div>
+  <h2>The Vivacity System</h2>
+  <p class="chapter-intro">Team SOUL's most important innovation. Clippy failed because it never learned to shut up. Archie must be the anti-Clippy.</p>
+
+  <blockquote>Animation intensity operates on a 0&ndash;100 scale that <strong>automatically decays</strong> as you use it more. The first message gets the full storybook. By message 25, Archie matches your pace. He earns your trust by reading the room.</blockquote>
+
+  <div class="vivacity-demo">
+    <h4 style="color: var(--cream); font-size: 14px; margin-bottom: 16px; letter-spacing: 0.5px;">THE DELIGHT CURVE</h4>
+
+    <div class="vivacity-bar">
+      <div class="vivacity-label">Msg 1</div>
+      <div class="vivacity-track"><div class="vivacity-fill v100"></div></div>
+      <div class="vivacity-value">100</div>
+    </div>
+    <div class="vivacity-desc">Full storybook wonder. The journey. The airplane. Everything.</div>
+
+    <div class="vivacity-bar">
+      <div class="vivacity-label">Msg 5</div>
+      <div class="vivacity-track"><div class="vivacity-fill v75"></div></div>
+      <div class="vivacity-value">75</div>
+    </div>
+    <div class="vivacity-desc">Warm companion. Crawler at reduced frequency. Animations familiar.</div>
+
+    <div class="vivacity-bar">
+      <div class="vivacity-label">Msg 15</div>
+      <div class="vivacity-track"><div class="vivacity-fill v50"></div></div>
+      <div class="vivacity-value">50</div>
+    </div>
+    <div class="vivacity-desc">Efficient partner. Journey on long responses only. Minimal expressions.</div>
+
+    <div class="vivacity-bar">
+      <div class="vivacity-label">Msg 25+</div>
+      <div class="vivacity-track"><div class="vivacity-fill v40"></div></div>
+      <div class="vivacity-value">40</div>
+    </div>
+    <div class="vivacity-desc">Trusted colleague. Abbreviated journey. He's part of the workspace now.</div>
+  </div>
+
+  <h3>How It Adapts</h3>
+  <p><strong>Signals that boost vivacity</strong> (they're enjoying it): hovering over Archie during animation (+5), clicking Archie in idle (+10), interacting with a lassoed element (+10), returning after 24+ hours (reset to 60).</p>
+  <p><strong>Signals that reduce vivacity</strong> (they want less): 3+ messages in 30 seconds (-20), clicking skip during journey (-10), dismissing an animation with Escape (-10), navigating away during journey (-5).</p>
+  <p><strong>The escape hatch:</strong> A gear icon in the chat header opens a vivacity slider. One end says <em>"Text Only"</em> and the other says <em>"Full Storybook."</em> Manual override persists in localStorage.</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 8: SOUND DESIGN -->
+<!-- ============================================================ -->
+<div class="chapter" id="sound">
+  <div class="chapter-number">Chapter Eight</div>
+  <h2>Sound Design</h2>
+  <p class="chapter-intro">Optional, off by default, opt-in. Not chiptune, not pure foley. Foley-textured synthesis &mdash; the Untitled Goose Game / A Short Hike palette. All Web Audio API &mdash; zero audio downloads.</p>
+
+  <div class="sound-grid">
+    <div class="sound-item">
+      <div class="sound-name">Message Sent</div>
+      <div class="sound-desc">Soft paper slide. Like placing a note on a desk.</div>
+      <div class="sound-dur">0.3s</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Acknowledgment</div>
+      <div class="sound-desc">A very soft "hm." A Rhodes piano pluck at low velocity.</div>
+      <div class="sound-dur">0.2s</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Text Crawl</div>
+      <div class="sound-desc">Tiny tap per character. Felt-tip-on-paper, not typewriter.</div>
+      <div class="sound-dur">0.02s each</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Paper Fold</div>
+      <div class="sound-desc">Paper crinkle. Three soft folds.</div>
+      <div class="sound-dur">0.3s &times; 3</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Airplane Throw</div>
+      <div class="sound-desc">A whisper of air. Not a whoosh &mdash; smaller.</div>
+      <div class="sound-dur">0.5s</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Glasses Adjust</div>
+      <div class="sound-desc">The tiniest metal "tink." Nearly subliminal.</div>
+      <div class="sound-dur">0.1s</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Sleep Z</div>
+      <div class="sound-desc">Very low, breathy tone. Wind through a crack.</div>
+      <div class="sound-dur">0.5s loop</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Wake-Up</div>
+      <div class="sound-desc">Two ascending notes. Like a music box starting.</div>
+      <div class="sound-dur">0.5s</div>
+    </div>
+    <div class="sound-item">
+      <div class="sound-name">Item-Get</div>
+      <div class="sound-desc">Ascending 3-note arpeggio. Major key. The EarthBound tribute.</div>
+      <div class="sound-dur">0.8s</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 9: THE RECOMMENDATION -->
+<!-- ============================================================ -->
+<div class="chapter" id="recommendation">
+  <div class="chapter-number">Chapter Nine</div>
+  <h2>The Recommended Synthesis</h2>
+  <p class="chapter-intro">Take the best from each team. Build one system.</p>
+
+  <div class="recommendation">
+    <h3>KINETIC's Rendering + SOUL's Brain + ENGINE's Spine</h3>
+    <p>SVG + GSAP + Lottie for rendering. The Vivacity System for emotional intelligence. Priority interrupt state machine for animation safety.</p>
+  </div>
+
+  <h3>Why KINETIC Wins the Rendering Debate</h3>
+  <ol>
+    <li><strong>Lightest weight</strong> &mdash; 111KB gzipped vs 380KB+ for Canvas sprites</li>
+    <li><strong>Best accessibility</strong> &mdash; SVG is DOM, therefore ARIA-reachable. Canvas is an opaque rectangle to screen readers.</li>
+    <li><strong>Best creative pipeline</strong> &mdash; After Effects &rarr; Bodymovin &rarr; Lottie. A motion designer controls quality, not a programmer.</li>
+    <li><strong>Best choreography</strong> &mdash; GSAP labeled timelines with seek, scrub, reverse, timeScale. Impossible with raw Canvas RAF loops.</li>
+    <li><strong>Resolution independent</strong> &mdash; SVG scales to any DPI. No 2x/3x sprite variants.</li>
+    <li><strong>Best paper airplane</strong> &mdash; SVG MorphSVG path morphing is objectively more elegant than sprite-sheet frame flipping.</li>
+  </ol>
+
+  <blockquote>"Archie is a <strong>performer</strong>, not a player character. He walks on stage, does his bit, delivers the line, and waits in the wings. This is theater. This is editorial. The motion graphics stack &mdash; GSAP, Lottie, SVG, CSS &mdash; is the same stack used by the NYT Interactives team, by Stripe's homepage, by Apple's product pages. These are the highest-quality web animations in existence." <br>&mdash; <em>Team KINETIC</em></blockquote>
+
+  <h3>Why SOUL's Vivacity System Is Non-Negotiable</h3>
+  <p>Without it, Archie becomes Clippy within 10 minutes. The auto-decay from wonder to efficiency across a session, the boost/decay signals from user behavior, and the manual override slider are the difference between a character that delights and one that annoys.</p>
+
+  <h3>Why ENGINE's Priority Interrupts Hold It Together</h3>
+  <p>Without state management, animations collide. What happens when the user sends a message while Archie is falling asleep? What if the response arrives during the walk? The 5-level priority system ensures response delivery is never interrupted, background states yield instantly, and everything else gracefully transitions.</p>
+
+  <h3>The Hybrid Character Approach</h3>
+  <table>
+    <tr>
+      <th>Complexity</th>
+      <th>Approach</th>
+      <th>Source</th>
+    </tr>
+    <tr>
+      <td>Simple poses (idle, expressions, glasses)</td>
+      <td>GSAP tweens on inline SVG rig</td>
+      <td>KINETIC</td>
+    </tr>
+    <tr>
+      <td>Complex sequences (walk, sit, throw)</td>
+      <td>Lottie player with AE-authored animation</td>
+      <td>KINETIC</td>
+    </tr>
+    <tr>
+      <td>Reduced motion / fallback</td>
+      <td>Static CSS character from ArchieReadMe.html</td>
+      <td>SOUL</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- CHAPTER 10: IMPLEMENTATION PHASES -->
+<!-- ============================================================ -->
+<div class="chapter" id="phases">
+  <div class="chapter-number">Chapter Ten</div>
+  <h2>Implementation Phases</h2>
+  <p class="chapter-intro">15&ndash;21 days of focused work across five phases. Each phase ships independently.</p>
+
+  <div class="phases">
+    <div class="phase">
+      <div class="phase-num">1</div>
+      <div class="phase-body">
+        <h4>Foundation</h4>
+        <div class="phase-time">3&ndash;4 days</div>
+        <ul>
+          <li>Refactor widget.js to module architecture with esbuild</li>
+          <li>Load GSAP + Lottie-web</li>
+          <li>Inject SVG character rig into DOM</li>
+          <li>Implement event bus (typing, idle, response-ready)</li>
+          <li>Implement Vivacity system (localStorage persistence)</li>
+          <li>Add <code>prefers-reduced-motion</code> handling</li>
+          <li>Add ARIA live regions and keyboard navigation</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">2</div>
+      <div class="phase-body">
+        <h4>Idle + Ambient</h4>
+        <div class="phase-time">2&ndash;3 days</div>
+        <ul>
+          <li>Sleep sequence: drowsy &rarr; nod &rarr; sleep &rarr; Z's</li>
+          <li>Wake-up animations (the glasses push-up moment)</li>
+          <li>Expression switching (neutral, thinking, excited, sleeping, worried)</li>
+          <li>Ambient CSS: fireflies, leaf drift, gentle sway</li>
+          <li>Vivacity integration (abbreviated sleep at lower levels)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">3</div>
+      <div class="phase-body">
+        <h4>Impatient Crawler</h4>
+        <div class="phase-time">2&ndash;3 days</div>
+        <ul>
+          <li>SVG crawler Archie on panel border via GSAP MotionPath</li>
+          <li>Typing speed observer driving <code>timeline.timeScale()</code></li>
+          <li>Micro-interactions: hang upside down, peek, tap foot, glasses slip</li>
+          <li>Vivacity gating (crawler only at vivacity &ge; 60)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">4</div>
+      <div class="phase-body">
+        <h4>Journey Response</h4>
+        <div class="phase-time">5&ndash;7 days</div>
+        <ul>
+          <li>Forest scene SVG with parallax layers</li>
+          <li>Clip-path iris-wipe scene transition</li>
+          <li>Walk cycle Lottie (requires After Effects authoring)</li>
+          <li>Sit-on-log, thinking, eureka sequence</li>
+          <li>Paper airplane: SVG morph fold, MotionPath flight, bounce landing, unfurl</li>
+          <li>Ink-bleed text reveal</li>
+          <li>3-second threshold + skip controls + three landing variants</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">5</div>
+      <div class="phase-body">
+        <h4>Lasso + Polish</h4>
+        <div class="phase-time">3&ndash;4 days</div>
+        <ul>
+          <li>Document detection and explainer popup</li>
+          <li>SVG rope with DrawSVG self-drawing effect</li>
+          <li>Lasso throw + pull choreography</li>
+          <li>Sound palette (Web Audio API, opt-in)</li>
+          <li>Multi-session greeting system</li>
+          <li>Cross-browser testing + performance profiling</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CLOSING -->
+<!-- ============================================================ -->
+<div class="closing">
+  <div class="closing-quote">
+    "The animation is not decoration. <strong>It is the product.</strong><br>
+    The journey transforms wait-time into anticipation.<br>
+    The crawler transforms solo typing into shared activity.<br>
+    The idle dreamer transforms abandonment into cozy presence.<br>
+    The paper airplane transforms a text response into a gift."
+  </div>
+  <div class="closing-attr">&mdash; all four teams, independently</div>
+  <div class="accent-bar"></div>
+  <p class="closing-footnote">Four teams. Three scenarios. One character who adjusts his glasses when he's thinking.<br>Full team reports available in the project /docs directory.</p>
+</div>
+
+</body>
+</html>
